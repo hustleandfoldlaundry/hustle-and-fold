@@ -146,6 +146,7 @@ return (
       <div style={rowStyle}>
         <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} style={cityInput} />
         <div style={stateBox}>CA</div>
+        <br />
         <input placeholder="ZIP" value={zip} onChange={(e) => setZip(formatZip(e.target.value))} style={zipInput} />
       </div>
 
