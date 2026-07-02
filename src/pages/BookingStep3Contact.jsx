@@ -1,0 +1,203 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useBooking } from "../context/BookingContext";
+import ProgressBar from "../ProgressBar";
+import Step3Progress from "../Step3Progress";
+export default function BookingStep3Contact() {
+const navigate = useNavigate();
+const { bookingData, setBookingData } = useBooking();
+const [name, setName] = useState(bookingData.name || "");
+const [address, setAddress] = useState(bookingData.address || "");
+const [city, setCity] = useState(bookingData.city || "");
+const [zip, setZip] = useState(bookingData.zip || "");
+const [unit, setUnit] = useState(bookingData.unit || "");
+const [phone, setPhone] = useState(bookingData.phone || "");
+const [email, setEmail] = useState(bookingData.email || "");
+const [error, setError] = useState("");
+const allowedZips = [
+"92562","92563","92564",
+"92584","92585","92586","92587","92596",
+"92590","92591","92592","92593",
+"92543","92544","92545"
+];
+function formatPhoneNumber(value) {
+const numbers = value.replace(/\D/g, "").slice(0, 10);
+if (numbers.length < 4) return numbers;
+if (numbers.length < 7) return "(" + numbers.slice(0,3) + ") " + numbers.slice(3);
+return "(" + numbers.slice(0,3) + ") " + numbers.slice(3,6) + "-" + numbers.slice(6);
+}
+function formatZip(value) {
+return value.replace(/\D/g, "").slice(0, 5);
+}
+function isValidZip(value) {
+return /^\d{5}$/.test(value);
+}
+function isServiceableZip(value) {
+return allowedZips.includes(value);
+}
+function isValidEmail(value) {
+return /^[^\s@]+@[^\s@]+.[^\s@]+$/.test(value);
+}
+const isFormValid =
+name &&
+address &&
+city &&
+phone &&
+email &&
+isValidZip(zip) &&
+isServiceableZip(zip) &&
+isValidEmail(email);
+function handleNext() {
+if (!isFormValid) {
+setError("Please complete all required fields correctly.");
+return;
+}
+setError("");
+
+setBookingData({
+  ...bookingData,
+  name,
+  address,
+  city,
+  stateValue: "CA",
+  zip,
+  cityStateZip: city + ", CA " + zip,
+  unit,
+  phone,
+  email
+});
+
+navigate("/booking/step3/detergent");
+
+}
+const card = {
+background: "white",
+padding: "20px",
+marginTop: "20px",
+borderRadius: "12px",
+boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
+display: "flex",
+flexDirection: "column",
+alignItems: "center"
+};
+const inputStyle = {
+width: "90%",
+padding: "10px",
+marginTop: "10px",
+borderRadius: "8px",
+border: "1px solid #ccc"
+};
+const rowStyle = {
+display: "flex",
+gap: "10px",
+width: "90%",
+marginTop: "10px",
+alignItems: "stretch"
+};
+const cityInput = {
+flex: 2,
+padding: "10px",
+borderRadius: "8px",
+border: "1px solid #ccc"
+};
+const stateBox = {
+width: "70px",
+display: "flex",
+alignItems: "center",
+justifyContent: "center",
+backgroundColor: "#e5e7eb",
+borderRadius: "8px",
+fontWeight: "bold"
+};
+const zipInput = {
+flex: 1,
+padding: "10px",
+borderRadius: "8px",
+border: "1px solid #ccc"
+};
+const navButton = {
+padding: "12px 20px",
+borderRadius: "8px",
+border: "none",
+color: "white"
+};
+const errorStyle = {
+color: "red",
+fontSize: "12px",
+marginTop: "4px",
+width: "90%",
+textAlign: "left"
+};
+return (
+<div style={{ minHeight: "100vh", backgroundColor: "#f5f9ff", padding: "30px" }}>
+<div style={{ maxWidth: "500px", margin: "0 auto", textAlign: "center" }}>
+
+
+    <h2 style={{ color: "#1e3a8a" }}>Contact Information</h2>
+
+    <div style={card}>
+
+      <input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
+      {!name && <p style={errorStyle}>Required</p>}
+
+      <input placeholder="Pickup / Drop-off Address" value={address} onChange={(e) => setAddress(e.target.value)} style={inputStyle} />
+      {!address && <p style={errorStyle}>Required</p>}
+
+      <div style={rowStyle}>
+        <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} style={cityInput} />
+        <div style={stateBox}>CA</div>
+        <input placeholder="ZIP" value={zip} onChange={(e) => setZip(formatZip(e.target.value))} style={zipInput} />
+      </div>
+
+      {(!city || !zip) && <p style={errorStyle}>City and ZIP required</p>}
+      {zip && !isValidZip(zip) && <p style={errorStyle}>ZIP must be 5 digits</p>}
+      {zip && isValidZip(zip) && !isServiceableZip(zip) && (
+        <p style={errorStyle}>We do not service this area</p>
+      )}
+
+      <input placeholder="Apt / Unit / Gate Code (Optional)" value={unit} onChange={(e) => setUnit(e.target.value)} style={inputStyle} />
+
+      <input placeholder="Phone Number" value={phone} onChange={(e) => setPhone(formatPhoneNumber(e.target.value))} style={inputStyle} />
+      {!phone && <p style={errorStyle}>Required</p>}
+
+      <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
+      {!email && <p style={errorStyle}>Required</p>}
+      {email && !isValidEmail(email) && <p style={errorStyle}>Invalid email</p>}
+
+    </div>
+
+    <div style={card}>
+      <h3>Grand Total</h3>
+      <h2 style={{ color: "#1e3a8a" }}>
+        ${(bookingData.grandTotal || 0).toFixed(2)}
+      </h2>
+    </div>
+
+    {error && <p style={{ color: "red" }}>{error}</p>}
+
+    <div style={{ marginTop: "20px" }}>
+      <button
+        onClick={() => navigate("/booking/step2")}
+        style={{ ...navButton, backgroundColor: "#6b7280", marginRight: "10px" }}
+      >
+        ← Back
+      </button>
+
+      <button
+        onClick={handleNext}
+        disabled={!isFormValid}
+        style={{
+          ...navButton,
+          backgroundColor: isFormValid ? "#2563eb" : "#9ca3af",
+          cursor: isFormValid ? "pointer" : "not-allowed"
+        }}
+      >
+        Next →
+      </button>
+    </div>
+
+  </div>
+</div>
+
+);
+}
