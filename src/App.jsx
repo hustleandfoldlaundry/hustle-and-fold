@@ -11,12 +11,13 @@ import BookingSuccess from "./pages/BookingSuccess";
 import Terms from "./pages/Terms";
 import AdminSchedule from "./pages/AdminSchedule";
 import AdminServices from "./pages/AdminServices";
+import AdminLogin from "./pages/AdminLogin";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin" element={<AdminLogin />} />
         <Route path="/" element={<BookingStep1 />} />
         <Route path="/booking/step2" element={<BookingStep2 />} />
         <Route path="/booking/step3/contact" element={<BookingStep3Contact />} />
@@ -27,6 +28,14 @@ export default function App() {
         <Route path="/booking/success" element={<BookingSuccess />} />
         <Route path="/admin/schedule" element={<AdminSchedule />} />
         <Route path="/admin/services" element={<AdminServices />} />
+        <Route
+  path="/admin-login"
+  element={<AdminLogin />}
+/>
+<Route
+  path="/admin/dashboard"
+  element={<AdminDashboard />}
+/>
       </Routes>
     </BrowserRouter>
   );

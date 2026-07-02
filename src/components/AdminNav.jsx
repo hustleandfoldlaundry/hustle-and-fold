@@ -27,8 +27,9 @@ export default function AdminNav({ activeTab, setActiveTab }) {
           style={topButton(label)}
           onClick={() => {
             if (label === "Orders") {
-              navigate("/admin");
-            } else if (label === "Schedule") {
+  navigate("/admin/dashboard");
+}
+ else if (label === "Schedule") {
               navigate("/admin/schedule");
             } else if (label === "Services") {
               navigate("/admin/services");
