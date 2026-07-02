@@ -61,7 +61,8 @@ setBookingData({
   city,
   stateValue: "CA",
   zip,
-  cityStateZip: city + ", CA " + zip,
+  city,
+  Zip,
   unit,
   phone,
   email
