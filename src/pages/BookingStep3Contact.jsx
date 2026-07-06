@@ -99,33 +99,26 @@ border: "1px solid #ccc"
 };
 const rowStyle = {
   display: "flex",
-  gap: "10px",
+  gap: "5px",
   width: "90%",
   marginTop: "10px",
   marginLeft: "5%",
   alignItems: "stretch"
 };
 const cityInput = {
-  width: "65%",
+  width: "60%",
   padding: "10px",
   borderRadius: "8px",
   border: "1px solid #ccc"
 };
-const stateBox = {
-width: "70px",
-display: "flex",
-alignItems: "center",
-justifyContent: "center",
-backgroundColor: "#e5e7eb",
-borderRadius: "8px",
-fontWeight: "bold"
-};
+
 const zipInput = {
-  width: "25%",
+  width: "20%",
   padding: "10px",
   borderRadius: "8px",
   border: "1px solid #ccc"
 };
+
 const navButton = {
 padding: "12px 20px",
 borderRadius: "8px",
