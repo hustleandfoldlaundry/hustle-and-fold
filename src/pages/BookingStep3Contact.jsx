@@ -105,7 +105,7 @@ marginTop: "10px",
 alignItems: "stretch"
 };
 const cityInput = {
-  width: "180px",
+  width: "140px",
   padding: "10px",
   borderRadius: "8px",
   border: "1px solid #ccc"
