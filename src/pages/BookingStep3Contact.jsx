@@ -105,7 +105,7 @@ marginTop: "10px",
 alignItems: "stretch"
 };
 const cityInput = {
-  width: "140px",
+  flex: 3,
   padding: "10px",
   borderRadius: "8px",
   border: "1px solid #ccc"
@@ -120,7 +120,7 @@ borderRadius: "8px",
 fontWeight: "bold"
 };
 const zipInput = {
-  width: "90px",
+  flex: 1,
   padding: "10px",
   borderRadius: "8px",
   border: "1px solid #ccc"
