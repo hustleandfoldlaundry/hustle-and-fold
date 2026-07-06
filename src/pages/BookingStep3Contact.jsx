@@ -38,6 +38,17 @@ return allowedZips.includes(value);
 function isValidEmail(value) {
 return /^[^\s@]+@[^\s@]+.[^\s@]+$/.test(value);
 }
+console.log({
+  name,
+  address,
+  city,
+  phone,
+  email,
+  zip,
+  validZip: isValidZip(zip),
+  serviceableZip: isServiceableZip(zip),
+  validEmail: isValidEmail(email)
+});
 const isFormValid =
 name &&
 address &&
@@ -61,8 +72,6 @@ setBookingData({
   city,
   stateValue: "CA",
   zip,
-  city,
-  Zip,
   unit,
   phone,
   email
@@ -111,10 +120,10 @@ borderRadius: "8px",
 fontWeight: "bold"
 };
 const zipInput = {
-flex: 1,
-padding: "10px",
-borderRadius: "8px",
-border: "1px solid #ccc"
+  width: "90px",
+  padding: "10px",
+  borderRadius: "8px",
+  border: "1px solid #ccc"
 };
 const navButton = {
 padding: "12px 20px",
@@ -145,11 +154,20 @@ return (
       {!address && <p style={errorStyle}>Required</p>}
 
       <div style={rowStyle}>
-        <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} style={cityInput} />
-        <div style={stateBox}>CA</div>
-        <br />
-        <input placeholder="ZIP" value={zip} onChange={(e) => setZip(formatZip(e.target.value))} style={zipInput} />
-      </div>
+  <input
+    placeholder="City"
+    value={city}
+    onChange={(e) => setCity(e.target.value)}
+    style={cityInput}
+  />
+
+  <input
+    placeholder="ZIP"
+    value={zip}
+    onChange={(e) => setZip(formatZip(e.target.value))}
+    style={zipInput}
+  />
+</div>
 
       {(!city || !zip) && <p style={errorStyle}>City and ZIP required</p>}
       {zip && !isValidZip(zip) && <p style={errorStyle}>ZIP must be 5 digits</p>}
