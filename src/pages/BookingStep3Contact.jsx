@@ -105,10 +105,10 @@ marginTop: "10px",
 alignItems: "stretch"
 };
 const cityInput = {
-flex: 2,
-padding: "10px",
-borderRadius: "8px",
-border: "1px solid #ccc"
+  width: "180px",
+  padding: "10px",
+  borderRadius: "8px",
+  border: "1px solid #ccc"
 };
 const stateBox = {
 width: "70px",
