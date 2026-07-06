@@ -98,14 +98,15 @@ borderRadius: "8px",
 border: "1px solid #ccc"
 };
 const rowStyle = {
-display: "flex",
-gap: "10px",
-width: "90%",
-marginTop: "10px",
-alignItems: "stretch"
+  display: "flex",
+  gap: "10px",
+  width: "90%",
+  marginTop: "10px",
+  marginLeft: "5%",
+  alignItems: "stretch"
 };
 const cityInput = {
-  flex: 3,
+  width: "65%",
   padding: "10px",
   borderRadius: "8px",
   border: "1px solid #ccc"
@@ -120,7 +121,7 @@ borderRadius: "8px",
 fontWeight: "bold"
 };
 const zipInput = {
-  flex: 1,
+  width: "25%",
   padding: "10px",
   borderRadius: "8px",
   border: "1px solid #ccc"
