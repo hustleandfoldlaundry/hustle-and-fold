@@ -41,10 +41,6 @@ export default function BookingStep1() {
   const [washFoldRug, setWashFoldRug] = useState(0);
   const [foldOnlyRug, setFoldOnlyRug] = useState(0);
 
-const [comforter, setComforter] = useState(0);
-const [sleepingBag, setSleepingBag] = useState(0);
-const [rug, setRug] = useState(0);
-
   const [otherCount, setOtherCount] = useState(0);
   const [otherText, setOtherText] = useState("");
   const [otherConfirmed, setOtherConfirmed] = useState(false);
@@ -83,24 +79,6 @@ const [rug, setRug] = useState(0);
   Number(
     services?.step1?.foldOnly?.["Price Per Bag"] || 15
   );
-
-  const beddingPrice =
-    Number(services?.step1?.bedding?.price || 25);
-
-  const comforterPrice =
-    Number(
-      services?.step1?.oversized?.comforter?.price || 18
-    );
-
-  const sleepingBagPrice =
-    Number(
-      services?.step1?.oversized?.sleepingBag?.price || 15
-    );
-
-  const rugPrice =
-    Number(
-      services?.step1?.oversized?.rug?.price || 20
-    );
 
 const washFoldBeddingPrice =
   Number(
@@ -187,6 +165,14 @@ const foldOnlyRugTotal =
   foldOnlySleepingBagTotal +
   washFoldRugTotal +
   foldOnlyRugTotal;
+
+console.log({
+  washFoldTotal,
+  foldOnlyTotal,
+  washFoldBeddingTotal,
+  foldOnlyBeddingTotal,
+  oversizedTotal
+});
 
   const total =
   washFoldTotal +
@@ -933,9 +919,9 @@ const foldOnlyRugTotal =
           )}
 
           <p style={{ marginTop: "15px" }}>
-            Total:
-            ${oversizedTotal.toFixed(2)}
-          </p>
+  Total:
+  ${total.toFixed(2)}
+</p>
 
           <button
             onClick={handleNext}
