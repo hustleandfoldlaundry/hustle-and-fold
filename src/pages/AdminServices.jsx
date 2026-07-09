@@ -173,6 +173,29 @@ await setDoc(
 
           <p>Price Per Pound</p>
 
+        <button
+  onClick={() =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        washFold: {
+          ...prev.step1?.washFold,
+          perPoundActive:
+            !prev.step1?.washFold?.perPoundActive
+        }
+      }
+    }))
+  }
+  style={toggleBtn(
+    services?.step1?.washFold?.perPoundActive
+  )}
+>
+  {services?.step1?.washFold?.perPoundActive
+    ? "Per Pound Enabled"
+    : "Per Pound Disabled"}
+</button>
+
           <input
             type="number"
             step="0.01"
@@ -191,6 +214,125 @@ await setDoc(
           />
 
           <p>Price Per Bag</p>
+
+<p>Wash & Fold Bedding Price</p>
+
+<input
+  type="number"
+  value={
+    services?.step1?.washFold?.["Bedding Price"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        washFold: {
+          ...prev.step1?.washFold,
+          ["Bedding Price"]: Number(
+            e.target.value
+          )
+        }
+      }
+    }))
+  }
+  style={input}
+/>
+
+<p>Wash & Fold Comforter Price</p>
+
+<input
+  type="number"
+  value={
+    services?.step1?.washFold?.["Comforter Price"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        washFold: {
+          ...prev.step1?.washFold,
+          ["Comforter Price"]: Number(
+            e.target.value
+          )
+        }
+      }
+    }))
+  }
+  style={input}
+/>
+
+<p>Wash & Fold Sleeping Bag Price</p>
+
+<input
+  type="number"
+  value={
+    services?.step1?.washFold?.["Sleeping Bag Price"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        washFold: {
+          ...prev.step1?.washFold,
+          ["Sleeping Bag Price"]: Number(
+            e.target.value
+          )
+        }
+      }
+    }))
+  }
+  style={input}
+/>
+
+<p>Wash & Fold Area Rug Price</p>
+
+<input
+  type="number"
+  value={
+    services?.step1?.washFold?.["Area Rug Price"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        washFold: {
+          ...prev.step1?.washFold,
+          ["Area Rug Price"]: Number(
+            e.target.value
+          )
+        }
+      }
+    }))
+  }
+  style={input}
+/>
+
+        <button
+  onClick={() =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        washFold: {
+          ...prev.step1?.washFold,
+          perBagActive:
+            !prev.step1?.washFold?.perBagActive
+        }
+      }
+    }))
+  }
+  style={toggleBtn(
+    services?.step1?.washFold?.perBagActive
+  )}
+>
+  {services?.step1?.washFold?.perBagActive
+    ? "Per Bag Enabled"
+    : "Per Bag Disabled"}
+</button>
 
           <input
             type="number"
@@ -273,6 +415,165 @@ await setDoc(
             }
             style={input}
           />
+<p>Price Per Bag</p>
+
+<input
+  type="number"
+  step="0.01"
+  value={
+    services?.step1?.foldOnly
+      ?.["Price Per Bag"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        foldOnly: {
+          ...prev.step1?.foldOnly,
+          ["Price Per Bag"]: Number(
+            e.target.value
+          )
+        }
+      }
+    }))
+  }
+  style={input}
+/>
+
+<p>Fold Only Bedding Price</p>
+
+<input
+  type="number"
+  value={
+    services?.step1?.foldOnly?.Bedding || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        foldOnly: {
+          ...prev.step1?.foldOnly,
+          Bedding: Number(e.target.value)
+        }
+      }
+    }))
+  }
+  style={input}
+/>
+
+<p>Fold Only Comforter Price</p>
+
+<input
+  type="number"
+  value={
+    services?.step1?.foldOnly?.Comforter || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        foldOnly: {
+          ...prev.step1?.foldOnly,
+          Comforter: Number(e.target.value)
+        }
+      }
+    }))
+  }
+  style={input}
+/>
+
+<p>Fold Only Sleeping Bag Price</p>
+
+<input
+  type="number"
+  value={
+    services?.step1?.foldOnly?.["Sleeping Bag"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        foldOnly: {
+          ...prev.step1?.foldOnly,
+          ["Sleeping Bag"]: Number(e.target.value)
+        }
+      }
+    }))
+  }
+  style={input}
+/>
+
+<p>Fold Only Area Rug Price</p>
+
+<input
+  type="number"
+  value={
+    services?.step1?.foldOnly?.["Area Rug"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        foldOnly: {
+          ...prev.step1?.foldOnly,
+          ["Area Rug"]: Number(e.target.value)
+        }
+      }
+    }))
+  }
+  style={input}
+/>
+
+<button
+  onClick={() =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        foldOnly: {
+          ...prev.step1?.foldOnly,
+          perBagActive:
+            !prev.step1?.foldOnly?.perBagActive
+        }
+      }
+    }))
+  }
+  style={toggleBtn(
+    services?.step1?.foldOnly?.perBagActive
+  )}
+>
+  {services?.step1?.foldOnly?.perBagActive
+    ? "Per Bag Enabled"
+    : "Per Bag Disabled"}
+</button>
+
+<button
+  onClick={() =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        foldOnly: {
+          ...prev.step1?.foldOnly,
+          perPoundActive:
+            !prev.step1?.foldOnly?.perPoundActive
+        }
+      }
+    }))
+  }
+  style={toggleBtn(
+    services?.step1?.foldOnly?.perPoundActive
+  )}
+>
+  {services?.step1?.foldOnly?.perPoundActive
+    ? "Per Pound Enabled"
+    : "Per Pound Disabled"}
+</button>
 
           <textarea
             value={

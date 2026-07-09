@@ -13,15 +13,37 @@ export default function BookingStep1() {
 
   const [washFold, setWashFold] = useState(false);
   const [foldOnly, setFoldOnly] = useState(false);
+  const [washFoldType, setWashFoldType] = useState("pound");
 
+  useEffect(() => {
+  if (
+    services?.step1?.washFold?.perPoundActive === false &&
+    services?.step1?.washFold?.perBagActive === true
+  ) {
+    setWashFoldType("bag");
+  }
+}, [services]);
+
+  const [washFoldBags, setWashFoldBags] = useState(1);
   const [washFoldLbs, setWashFoldLbs] = useState(10);
   const [foldOnlyLbs, setFoldOnlyLbs] = useState(10);
+  const [foldOnlyType, setFoldOnlyType] = useState("pound");
+  const [foldOnlyBags, setFoldOnlyBags] = useState(1);
+  const [washFoldBedding, setWashFoldBedding] = useState(0);
+  const [foldOnlyBedding, setFoldOnlyBedding] = useState(0);
 
-  const [beddingSets, setBeddingSets] = useState(0);
+  const [washFoldComforter, setWashFoldComforter] = useState(0);
+  const [foldOnlyComforter, setFoldOnlyComforter] = useState(0);
 
-  const [comforter, setComforter] = useState(0);
-  const [sleepingBag, setSleepingBag] = useState(0);
-  const [rug, setRug] = useState(0);
+  const [washFoldSleepingBag, setWashFoldSleepingBag] = useState(0);
+  const [foldOnlySleepingBag, setFoldOnlySleepingBag] = useState(0);
+
+  const [washFoldRug, setWashFoldRug] = useState(0);
+  const [foldOnlyRug, setFoldOnlyRug] = useState(0);
+
+const [comforter, setComforter] = useState(0);
+const [sleepingBag, setSleepingBag] = useState(0);
+const [rug, setRug] = useState(0);
 
   const [otherCount, setOtherCount] = useState(0);
   const [otherText, setOtherText] = useState("");
@@ -38,10 +60,7 @@ export default function BookingStep1() {
         );
 
         if (snap.exists()) {
-  console.log(
-  "FIRESTORE DATA:",
-  JSON.stringify(snap.data(), null, 2)
-);
+  
   setServices(snap.data());
 }
       } catch (error) {
@@ -54,12 +73,16 @@ export default function BookingStep1() {
 
   const washFoldPrice =
     Number(services?.step1?.washFold?.pricePerLb || 2.25);
-console.log(
-  "Wash Fold Price:",
-  services?.step1?.washFold?.pricePerLb
-);
+
+  const washFoldBagPrice =
+    Number(services?.step1?.washFold?.pricePerBag || 35);
   const foldOnlyPrice =
     Number(services?.step1?.foldOnly?.pricePerLb || 1);
+
+    const foldOnlyBagPrice =
+  Number(
+    services?.step1?.foldOnly?.["Price Per Bag"] || 15
+  );
 
   const beddingPrice =
     Number(services?.step1?.bedding?.price || 25);
@@ -79,43 +102,109 @@ console.log(
       services?.step1?.oversized?.rug?.price || 20
     );
 
+const washFoldBeddingPrice =
+  Number(
+    services?.step1?.washFold?.["Bedding Price"] || 25
+  );
+
+const washFoldComforterPrice =
+  Number(
+    services?.step1?.washFold?.["Comforter Price"] || 18
+  );
+
+const washFoldSleepingBagPrice =
+  Number(
+    services?.step1?.washFold?.["Sleeping Bag Price"] || 15
+  );
+
+const washFoldRugPrice =
+  Number(
+    services?.step1?.washFold?.["Area Rug Price"] || 20
+  );
+
+const foldOnlyBeddingPrice =
+  Number(
+    services?.step1?.foldOnly?.Bedding || 12
+  );
+
+const foldOnlyComforterPrice =
+  Number(
+    services?.step1?.foldOnly?.Comforter || 9
+  );
+
+const foldOnlySleepingBagPrice =
+  Number(
+    services?.step1?.foldOnly?.["Sleeping Bag"] || 7
+  );
+
+const foldOnlyRugPrice =
+  Number(
+    services?.step1?.foldOnly?.["Area Rug"] || 10
+  );
+
   const washFoldTotal =
-    washFold ? washFoldLbs * washFoldPrice : 0;
+  !washFold
+    ? 0
+    : washFoldType === "bag"
+    ? washFoldBags * washFoldBagPrice
+    : washFoldLbs * washFoldPrice;
 
   const foldOnlyTotal =
-    foldOnly ? foldOnlyLbs * foldOnlyPrice : 0;
+  !foldOnly
+    ? 0
+    : foldOnlyType === "bag"
+    ? foldOnlyBags * foldOnlyBagPrice
+    : foldOnlyLbs * foldOnlyPrice;
 
-  const beddingTotal =
-    beddingSets * beddingPrice;
+  const washFoldBeddingTotal =
+  washFoldBedding * washFoldBeddingPrice;
 
-  const comforterTotal =
-    comforter * comforterPrice;
+const foldOnlyBeddingTotal =
+  foldOnlyBedding * foldOnlyBeddingPrice;
 
-  const sleepingBagTotal =
-    sleepingBag * sleepingBagPrice;
+const washFoldComforterTotal =
+  washFoldComforter * washFoldComforterPrice;
 
-  const rugTotal =
-    rug * rugPrice;
+const foldOnlyComforterTotal =
+  foldOnlyComforter * foldOnlyComforterPrice;
+
+const washFoldSleepingBagTotal =
+  washFoldSleepingBag * washFoldSleepingBagPrice;
+
+const foldOnlySleepingBagTotal =
+  foldOnlySleepingBag * foldOnlySleepingBagPrice;
+
+const washFoldRugTotal =
+  washFoldRug * washFoldRugPrice;
+
+const foldOnlyRugTotal =
+  foldOnlyRug * foldOnlyRugPrice;
 
   const oversizedTotal =
-    comforterTotal +
-    sleepingBagTotal +
-    rugTotal;
+  washFoldComforterTotal +
+  foldOnlyComforterTotal +
+  washFoldSleepingBagTotal +
+  foldOnlySleepingBagTotal +
+  washFoldRugTotal +
+  foldOnlyRugTotal;
 
   const total =
-    washFoldTotal +
-    foldOnlyTotal +
-    beddingTotal +
-    oversizedTotal;
+  washFoldTotal +
+  foldOnlyTotal +
+  washFoldBeddingTotal +
+  foldOnlyBeddingTotal +
+  oversizedTotal;
 
   function handleNext() {
     if (
-      !washFold &&
-      !foldOnly &&
-      beddingSets === 0 &&
-      comforter === 0 &&
-      sleepingBag === 0 &&
-      rug === 0 &&
+      washFoldBedding === 0 &&
+      foldOnlyBedding === 0 &&
+      washFoldComforter === 0 &&
+      foldOnlyComforter === 0 &&
+      washFoldSleepingBag === 0 &&
+      foldOnlySleepingBag === 0 &&
+      washFoldRug === 0 &&
+      foldOnlyRug === 0 &&
       otherCount === 0
     ) {
       setError("Please select at least one service.");
@@ -137,11 +226,17 @@ console.log(
       washFold,
       foldOnly,
       washFoldLbs,
+      washFoldType,
+      washFoldBags,
       foldOnlyLbs,
-      beddingSets,
-      comforter,
-      sleepingBag,
-      rug,
+      washFoldBedding,
+      foldOnlyBedding,
+      washFoldComforter,
+      foldOnlyComforter,
+      washFoldSleepingBag,
+      foldOnlySleepingBag,
+      washFoldRug,
+      foldOnlyRug,
       otherCount,
       otherText,
       otherConfirmed
@@ -195,7 +290,8 @@ console.log(
         >
           Step 1: Laundry Services
         </h2>
-
+      
+      {services?.step1?.washFold?.active && (
         <div style={card}>
           <button
             onClick={() => setWashFold(!washFold)}
@@ -214,32 +310,142 @@ console.log(
 
           {washFold && (
             <>
-              <p>${washFoldPrice.toFixed(2)} per lb</p>
+            <div
+  style={{
+    display: "flex",
+    justifyContent: "center",
+    gap: "10px",
+    marginTop: "10px"
+  }}
+>
+  
+  {services?.step1?.washFold?.perPoundActive && (
+  <button
+    onClick={() => setWashFoldType("pound")}
+    style={{
+      ...buttonBase,
+      backgroundColor:
+        washFoldType === "pound"
+          ? "#2563eb"
+          : "#dbeafe",
+      color:
+        washFoldType === "pound"
+          ? "white"
+          : "#1e3a8a"
+    }}
+  >
+    Per Pound
+  </button>
+)}
 
-              <input
-                type="range"
-                min="10"
-                max="50"
-                value={washFoldLbs}
-                onChange={(e) =>
-                  setWashFoldLbs(
-                    Number(e.target.value)
-                  )
-                }
-              />
+  {services?.step1?.washFold?.perBagActive && (
+  <button
+    onClick={() => setWashFoldType("bag")}
+    style={{
+      ...buttonBase,
+      backgroundColor:
+        washFoldType === "bag"
+          ? "#2563eb"
+          : "#dbeafe",
+      color:
+        washFoldType === "bag"
+          ? "white"
+          : "#1e3a8a"
+    }}
+  >
+    Per Bag
+  </button>
+)}
+</div>
+              {washFoldType === "pound" ? (
+  <>
+    <p>${washFoldPrice.toFixed(2)} per lb</p>
+<p
+  style={{
+    fontSize: "14px",
+    color: "#666",
+    marginTop: "5px"
+  }}
+>
+  One bag holds approximately 15–20 lbs of laundry.
+  A bag is a large kitchen bag. 
 
-              <p>{washFoldLbs} lbs</p>
+  ***The best way for you to weigh your clothes is to weigh yourself on a scale then weigh yourself with the the clothes. Subtract your weight from your wieght + your clothes. Do this for each bag and add them all together.***
+</p>
+    <input
+      type="range"
+      min="10"
+      max="50"
+      value={washFoldLbs}
+      onChange={(e) =>
+        setWashFoldLbs(
+          Number(e.target.value)
+        )
+      }
+    />
 
-              <p>
-                ${washFoldTotal.toFixed(2)}
-              </p>
-            </>
+    <p>{washFoldLbs} lbs</p>
+
+    <p>
+      ${washFoldTotal.toFixed(2)}
+    </p>
+  </>
+) : (
+  <>
+    <p>
+  ${washFoldBagPrice.toFixed(2)} per bag
+</p>
+
+<p
+  style={{
+    fontSize: "14px",
+    color: "#666",
+    marginTop: "5px"
+  }}
+>
+  One bag holds approximately 15–20 lbs of laundry. A bag is a large kitchen bag.
+</p>
+
+    <div style={counterRow}>
+      <button
+        onClick={() =>
+          setWashFoldBags(
+            Math.max(1, washFoldBags - 1)
+          )
+        }
+      >
+        -
+      </button>
+
+      <span>{washFoldBags}</span>
+
+      <button
+        onClick={() =>
+          setWashFoldBags(
+            washFoldBags + 1
+          )
+        }
+      >
+        +
+      </button>
+    </div>
+
+    <p>
+      Total: $
+      {washFoldTotal.toFixed(2)}
+    </p>
+  </>
+)}
+</>
           )}
-        </div>
+</div>
+      )}
 
-        <div style={card}>
-          <button
-            onClick={() => setFoldOnly(!foldOnly)}
+
+        {services?.step1?.foldOnly?.active && (
+  <div style={card}>
+    <button
+      onClick={() => setFoldOnly(!foldOnly)}
             style={{
               ...buttonBase,
               backgroundColor: foldOnly
@@ -255,137 +461,412 @@ console.log(
 
           {foldOnly && (
             <>
-              <p>${foldOnlyPrice.toFixed(2)} per lb</p>
+            <div
+  style={{
+    display: "flex",
+    justifyContent: "center",
+    gap: "10px",
+    marginTop: "10px"
+  }}
+>
+  {services?.step1?.foldOnly?.perPoundActive && (
+    <button
+      onClick={() => setFoldOnlyType("pound")}
+      style={{
+        ...buttonBase,
+        backgroundColor:
+          foldOnlyType === "pound"
+            ? "#2563eb"
+            : "#dbeafe",
+        color:
+          foldOnlyType === "pound"
+            ? "white"
+            : "#1e3a8a"
+      }}
+    >
+      Per Pound
+    </button>
+  )}
 
-              <input
-                type="range"
-                min="10"
-                max="50"
-                value={foldOnlyLbs}
-                onChange={(e) =>
-                  setFoldOnlyLbs(
-                    Number(e.target.value)
-                  )
-                }
-              />
+  {services?.step1?.foldOnly?.perBagActive && (
+    <button
+      onClick={() => setFoldOnlyType("bag")}
+      style={{
+        ...buttonBase,
+        backgroundColor:
+          foldOnlyType === "bag"
+            ? "#2563eb"
+            : "#dbeafe",
+        color:
+          foldOnlyType === "bag"
+            ? "white"
+            : "#1e3a8a"
+      }}
+    >
+      Per Bag
+    </button>
+  )}
+</div>
+              {foldOnlyType === "pound" ? (
+  <>
+    <p>${foldOnlyPrice.toFixed(2)} per lb</p>
 
-              <p>{foldOnlyLbs} lbs</p>
+    <input
+      type="range"
+      min="10"
+      max="50"
+      value={foldOnlyLbs}
+      onChange={(e) =>
+        setFoldOnlyLbs(
+          Number(e.target.value)
+        )
+      }
+    />
 
-              <p>
-                ${foldOnlyTotal.toFixed(2)}
-              </p>
+    <p>{foldOnlyLbs} lbs</p>
+
+    <p>
+      ${foldOnlyTotal.toFixed(2)}
+    </p>
+  </>
+) : (
+  <>
+    <p>
+      ${foldOnlyBagPrice.toFixed(2)} per bag
+    </p>
+
+    <div style={counterRow}>
+      <button
+        onClick={() =>
+          setFoldOnlyBags(
+            Math.max(1, foldOnlyBags - 1)
+          )
+        }
+      >
+        -
+      </button>
+
+      <span>{foldOnlyBags}</span>
+
+      <button
+        onClick={() =>
+          setFoldOnlyBags(
+            foldOnlyBags + 1
+          )
+        }
+      >
+        +
+      </button>
+    </div>
+
+    <p>
+      Total: $
+      {foldOnlyTotal.toFixed(2)}
+    </p>
+  </>
+)}
             </>
           )}
         </div>
+)}
 
-        <div style={card}>
-          <h3>
-            Bedding Sets (${beddingPrice.toFixed(2)} each)
-          </h3>
+       {washFold && (
+  <div style={card}>
+    <h3>
+      Wash & Fold Bedding Sets (${washFoldBeddingPrice.toFixed(2)} each)
+    </h3>
 
-          <div style={counterRow}>
-            <button
-              onClick={() =>
-                setBeddingSets(
-                  Math.max(0, beddingSets - 1)
-                )
-              }
-            >
-              -
-            </button>
+    <div style={counterRow}>
+      <button
+        onClick={() =>
+          setWashFoldBedding(
+            Math.max(0, washFoldBedding - 1)
+          )
+        }
+      >
+        -
+      </button>
 
-            <span>{beddingSets}</span>
+      <span>{washFoldBedding}</span>
 
-            <button
-              onClick={() =>
-                setBeddingSets(beddingSets + 1)
-              }
-            >
-              +
-            </button>
-          </div>
+      <button
+        onClick={() =>
+          setWashFoldBedding(
+            washFoldBedding + 1
+          )
+        }
+      >
+        +
+      </button>
+    </div>
 
-          <p>${beddingTotal.toFixed(2)}</p>
-        </div>
+    <p>
+      ${washFoldBeddingTotal.toFixed(2)}
+    </p>
+  </div>
+)}
 
-        <div style={card}>
-          <h3>Oversized Items</h3>
+{foldOnly && (
+  <div style={card}>
+    <h3>
+      Fold Only Bedding Sets (${foldOnlyBeddingPrice.toFixed(2)} each)
+    </h3>
 
-          <p>
-            Down Comforter (${comforterPrice})
-          </p>
+    <div style={counterRow}>
+      <button
+        onClick={() =>
+          setFoldOnlyBedding(
+            Math.max(0, foldOnlyBedding - 1)
+          )
+        }
+      >
+        -
+      </button>
 
-          <div style={counterRow}>
-            <button
-              onClick={() =>
-                setComforter(
-                  Math.max(0, comforter - 1)
-                )
-              }
-            >
-              -
-            </button>
+      <span>{foldOnlyBedding}</span>
 
-            <span>{comforter}</span>
+      <button
+        onClick={() =>
+          setFoldOnlyBedding(
+            foldOnlyBedding + 1
+          )
+        }
+      >
+        +
+      </button>
+    </div>
 
-            <button
-              onClick={() =>
-                setComforter(comforter + 1)
-              }
-            >
-              +
-            </button>
-          </div>
+    <p>
+      ${foldOnlyBeddingTotal.toFixed(2)}
+    </p>
+  </div>
+)}
 
-          <p>
-            Sleeping Bag (${sleepingBagPrice})
-          </p>
+         {washFold && (
+  <div style={card}>
+    <h3>Wash & Fold Oversized Items</h3>
 
-          <div style={counterRow}>
-            <button
-              onClick={() =>
-                setSleepingBag(
-                  Math.max(0, sleepingBag - 1)
-                )
-              }
-            >
-              -
-            </button>
+    <p>
+      Down Comforter (${washFoldComforterPrice})
+    </p>
 
-            <span>{sleepingBag}</span>
+    <div style={counterRow}>
+      <button
+        onClick={() =>
+          setWashFoldComforter(
+            Math.max(
+              0,
+              washFoldComforter - 1
+            )
+          )
+        }
+      >
+        -
+      </button>
 
-            <button
-              onClick={() =>
-                setSleepingBag(
-                  sleepingBag + 1
-                )
-              }
-            >
-              +
-            </button>
-          </div>
+      <span>{washFoldComforter}</span>
 
-          <p>
-            Area Rug (${rugPrice})
-          </p>
+      <button
+        onClick={() =>
+          setWashFoldComforter(
+            washFoldComforter + 1
+          )
+        }
+      >
+        +
+      </button>
+    </div>
 
-          <div style={counterRow}>
-            <button
-              onClick={() =>
-                setRug(Math.max(0, rug - 1))
-              }
-            >
-              -
-            </button>
+    <p>
+  ${washFoldComforterTotal.toFixed(2)}
+</p>
 
-            <span>{rug}</span>
+<p>
+  Sleeping Bag (${washFoldSleepingBagPrice})
+</p>
 
-            <button
-              onClick={() => setRug(rug + 1)}
-            >
-              +
-            </button>
-          </div>
+<div style={counterRow}>
+  <button
+    onClick={() =>
+      setWashFoldSleepingBag(
+        Math.max(
+          0,
+          washFoldSleepingBag - 1
+        )
+      )
+    }
+  >
+    -
+  </button>
+
+  <span>{washFoldSleepingBag}</span>
+
+  <button
+    onClick={() =>
+      setWashFoldSleepingBag(
+        washFoldSleepingBag + 1
+      )
+    }
+  >
+    +
+  </button>
+</div>
+
+<p>
+  ${washFoldSleepingBagTotal.toFixed(2)}
+</p>
+
+<p>
+  Area Rug (${washFoldRugPrice})
+</p>
+
+<div style={counterRow}>
+  <button
+    onClick={() =>
+      setWashFoldRug(
+        Math.max(
+          0,
+          washFoldRug - 1
+        )
+      )
+    }
+  >
+    -
+  </button>
+
+  <span>{washFoldRug}</span>
+
+  <button
+    onClick={() =>
+      setWashFoldRug(
+        washFoldRug + 1
+      )
+    }
+  >
+    +
+  </button>
+</div>
+
+<p>
+  ${washFoldRugTotal.toFixed(2)}
+</p>
+
+</div>
+)}
+
+{foldOnly && (
+  <div style={card}>
+    <h3>Fold Only Oversized Items</h3>
+
+    <p>
+      Down Comforter (${foldOnlyComforterPrice})
+    </p>
+
+    <div style={counterRow}>
+      <button
+        onClick={() =>
+          setFoldOnlyComforter(
+            Math.max(
+              0,
+              foldOnlyComforter - 1
+            )
+          )
+        }
+      >
+        -
+      </button>
+
+      <span>{foldOnlyComforter}</span>
+
+      <button
+        onClick={() =>
+          setFoldOnlyComforter(
+            foldOnlyComforter + 1
+          )
+        }
+      >
+        +
+      </button>
+    </div>
+
+    <p>
+      ${foldOnlyComforterTotal.toFixed(2)}
+    </p>
+
+    <p>
+      Sleeping Bag (${foldOnlySleepingBagPrice})
+    </p>
+
+    <div style={counterRow}>
+      <button
+        onClick={() =>
+          setFoldOnlySleepingBag(
+            Math.max(
+              0,
+              foldOnlySleepingBag - 1
+            )
+          )
+        }
+      >
+        -
+      </button>
+
+      <span>{foldOnlySleepingBag}</span>
+
+      <button
+        onClick={() =>
+          setFoldOnlySleepingBag(
+            foldOnlySleepingBag + 1
+          )
+        }
+      >
+        +
+      </button>
+    </div>
+
+    <p>
+      ${foldOnlySleepingBagTotal.toFixed(2)}
+    </p>
+
+    <p>
+      Area Rug (${foldOnlyRugPrice})
+    </p>
+
+    <div style={counterRow}>
+      <button
+        onClick={() =>
+          setFoldOnlyRug(
+            Math.max(
+              0,
+              foldOnlyRug - 1
+            )
+          )
+        }
+      >
+        -
+      </button>
+
+      <span>{foldOnlyRug}</span>
+
+      <button
+        onClick={() =>
+          setFoldOnlyRug(
+            foldOnlyRug + 1
+          )
+        }
+      >
+        +
+      </button>
+    </div>
+
+    <p>
+      ${foldOnlyRugTotal.toFixed(2)}
+    </p>
+  </div>
+)}
+
+<div style={card}>
+  <h3>Oversized Items</h3>
 
           <p>Other</p>
 
@@ -444,7 +925,7 @@ console.log(
                     }
                   />{" "}
                   I understand that this item
-                  requires approval before
+                  requires Hustle & Fold Admin approval before
                   washing.
                 </label>
               </div>
@@ -455,35 +936,7 @@ console.log(
             Total:
             ${oversizedTotal.toFixed(2)}
           </p>
-        </div>
 
-        <h3
-          style={{
-            textAlign: "center",
-            marginTop: "20px",
-            color: "#1e3a8a"
-          }}
-        >
-          Total: ${total.toFixed(2)}
-        </h3>
-
-        {error && (
-          <p
-            style={{
-              color: "red",
-              textAlign: "center"
-            }}
-          >
-            {error}
-          </p>
-        )}
-
-        <div
-          style={{
-            textAlign: "center",
-            marginTop: "20px"
-          }}
-        >
           <button
             onClick={handleNext}
             style={{
