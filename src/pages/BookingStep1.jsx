@@ -183,16 +183,18 @@ console.log({
 
   function handleNext() {
     if (
-      washFoldBedding === 0 &&
-      foldOnlyBedding === 0 &&
-      washFoldComforter === 0 &&
-      foldOnlyComforter === 0 &&
-      washFoldSleepingBag === 0 &&
-      foldOnlySleepingBag === 0 &&
-      washFoldRug === 0 &&
-      foldOnlyRug === 0 &&
-      otherCount === 0
-    ) {
+  !washFold &&
+  !foldOnly &&
+  washFoldBedding === 0 &&
+  foldOnlyBedding === 0 &&
+  washFoldComforter === 0 &&
+  foldOnlyComforter === 0 &&
+  washFoldSleepingBag === 0 &&
+  foldOnlySleepingBag === 0 &&
+  washFoldRug === 0 &&
+  foldOnlyRug === 0 &&
+  otherCount === 0
+) {
       setError("Please select at least one service.");
       return;
     }
