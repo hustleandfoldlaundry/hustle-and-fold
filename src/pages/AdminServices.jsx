@@ -217,6 +217,28 @@ await setDoc(
 
 <p>Wash & Fold Bedding Price</p>
 
+<p>Wash & Fold Bedding Description</p>
+
+<textarea
+  value={
+    services?.step1?.washFold?.["Bedding Description"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        washFold: {
+          ...prev.step1?.washFold,
+          ["Bedding Description"]: e.target.value
+        }
+      }
+    }))
+  }
+  placeholder="Customer description"
+  style={textarea}
+/>
+
 <input
   type="number"
   value={
@@ -241,6 +263,28 @@ await setDoc(
 
 <p>Wash & Fold Comforter Price</p>
 
+<p>Wash & Fold Comforter Description</p>
+
+<textarea
+  value={
+    services?.step1?.washFold?.["Comforter Description"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        washFold: {
+          ...prev.step1?.washFold,
+          ["Comforter Description"]: e.target.value
+        }
+      }
+    }))
+  }
+  placeholder="Customer description"
+  style={textarea}
+/>
+
 <input
   type="number"
   value={
@@ -264,6 +308,28 @@ await setDoc(
 />
 
 <p>Wash & Fold Sleeping Bag Price</p>
+
+<p>Wash & Fold Sleeping Bag Description</p>
+
+<textarea
+  value={
+    services?.step1?.washFold?.["Sleeping Bag Description"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        washFold: {
+          ...prev.step1?.washFold,
+          ["Sleeping Bag Description"]: e.target.value
+        }
+      }
+    }))
+  }
+  placeholder="Customer description"
+  style={textarea}
+/>
 
 <input
   type="number"
@@ -311,6 +377,28 @@ await setDoc(
   style={input}
 />
 
+<p>Wash & Fold Area Rug Description</p>
+
+<textarea
+  value={
+    services?.step1?.washFold?.["Area Rug Description"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        washFold: {
+          ...prev.step1?.washFold,
+          ["Area Rug Description"]: e.target.value
+        }
+      }
+    }))
+  }
+  placeholder="Customer description"
+  style={textarea}
+/>
+
         <button
   onClick={() =>
     setServices((prev) => ({
@@ -350,6 +438,24 @@ await setDoc(
             }
             style={input}
           />
+
+<p>Description</p>
+
+<textarea
+  value={
+    services?.step1?.washFold
+      ?.description || ""
+  }
+  onChange={(e) =>
+    update(
+      "washFold",
+      "description",
+      e.target.value
+    )
+  }
+  placeholder="Customer description"
+  style={textarea}
+/>
 
           <textarea
             value={
@@ -443,6 +549,28 @@ await setDoc(
 
 <p>Fold Only Bedding Price</p>
 
+<p>Fold Only Bedding Description</p>
+
+<textarea
+  value={
+    services?.step1?.foldOnly?.["Bedding Description"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        foldOnly: {
+          ...prev.step1?.foldOnly,
+          ["Bedding Description"]: e.target.value
+        }
+      }
+    }))
+  }
+  placeholder="Customer description"
+  style={textarea}
+/>
+
 <input
   type="number"
   value={
@@ -465,6 +593,28 @@ await setDoc(
 
 <p>Fold Only Comforter Price</p>
 
+<p>Fold Only Comforter Description</p>
+
+<textarea
+  value={
+    services?.step1?.foldOnly?.["Comforter Description"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        foldOnly: {
+          ...prev.step1?.foldOnly,
+          ["Comforter Description"]: e.target.value
+        }
+      }
+    }))
+  }
+  placeholder="Customer description"
+  style={textarea}
+/>
+
 <input
   type="number"
   value={
@@ -486,6 +636,28 @@ await setDoc(
 />
 
 <p>Fold Only Sleeping Bag Price</p>
+
+<p>Fold Only Sleeping Bag Description</p>
+
+<textarea
+  value={
+    services?.step1?.foldOnly?.["Sleeping Bag Description"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        foldOnly: {
+          ...prev.step1?.foldOnly,
+          ["Sleeping Bag Description"]: e.target.value
+        }
+      }
+    }))
+  }
+  placeholder="Customer description"
+  style={textarea}
+/>
 
 <input
   type="number"
@@ -527,6 +699,28 @@ await setDoc(
     }))
   }
   style={input}
+/>
+
+<p>Fold Only Area Rug Description</p>
+
+<textarea
+  value={
+    services?.step1?.foldOnly?.["Area Rug Description"] || ""
+  }
+  onChange={(e) =>
+    setServices((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        foldOnly: {
+          ...prev.step1?.foldOnly,
+          ["Area Rug Description"]: e.target.value
+        }
+      }
+    }))
+  }
+  placeholder="Customer description"
+  style={textarea}
 />
 
 <button
@@ -574,6 +768,24 @@ await setDoc(
     ? "Per Pound Enabled"
     : "Per Pound Disabled"}
 </button>
+
+<p>Description</p>
+
+<textarea
+  value={
+    services?.step1?.foldOnly
+      ?.description || ""
+  }
+  onChange={(e) =>
+    update(
+      "foldOnly",
+      "description",
+      e.target.value
+    )
+  }
+  placeholder="Customer description"
+  style={textarea}
+/>
 
           <textarea
             value={

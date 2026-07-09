@@ -296,6 +296,18 @@ console.log({
             Wash & Fold
           </button>
 
+{services?.step1?.washFold?.description && (
+  <p
+    style={{
+      marginTop: "10px",
+      fontSize: "14px",
+      color: "#666"
+    }}
+  >
+    {services?.step1?.washFold?.description}
+  </p>
+)}
+
           {washFold && (
             <>
             <div
@@ -447,6 +459,18 @@ console.log({
             Fold Only
           </button>
 
+{services?.step1?.foldOnly?.description && (
+  <p
+    style={{
+      marginTop: "10px",
+      fontSize: "14px",
+      color: "#666"
+    }}
+  >
+    {services?.step1?.foldOnly?.description}
+  </p>
+)}
+
           {foldOnly && (
             <>
             <div
@@ -564,6 +588,17 @@ console.log({
       Wash & Fold Bedding Sets (${washFoldBeddingPrice.toFixed(2)} each)
     </h3>
 
+{services?.step1?.washFold?.["Bedding Description"] && (
+  <p
+    style={{
+      fontSize: "14px",
+      color: "#666"
+    }}
+  >
+    {services?.step1?.washFold?.["Bedding Description"]}
+  </p>
+)}
+
     <div style={counterRow}>
       <button
         onClick={() =>
@@ -599,6 +634,17 @@ console.log({
     <h3>
       Fold Only Bedding Sets (${foldOnlyBeddingPrice.toFixed(2)} each)
     </h3>
+
+{services?.step1?.foldOnly?.["Bedding Description"] && (
+  <p
+    style={{
+      fontSize: "14px",
+      color: "#666"
+    }}
+  >
+    {services?.step1?.foldOnly?.["Bedding Description"]}
+  </p>
+)}
 
     <div style={counterRow}>
       <button
@@ -638,6 +684,17 @@ console.log({
       Down Comforter (${washFoldComforterPrice})
     </p>
 
+{services?.step1?.washFold?.["Comforter Description"] && (
+  <p
+    style={{
+      fontSize: "14px",
+      color: "#666"
+    }}
+  >
+    {services?.step1?.washFold?.["Comforter Description"]}
+  </p>
+)}
+
     <div style={counterRow}>
       <button
         onClick={() =>
@@ -673,6 +730,17 @@ console.log({
   Sleeping Bag (${washFoldSleepingBagPrice})
 </p>
 
+{services?.step1?.washFold?.["Sleeping Bag Description"] && (
+  <p
+    style={{
+      fontSize: "14px",
+      color: "#666"
+    }}
+  >
+    {services?.step1?.washFold?.["Sleeping Bag Description"]}
+  </p>
+)}
+
 <div style={counterRow}>
   <button
     onClick={() =>
@@ -707,6 +775,17 @@ console.log({
 <p>
   Area Rug (${washFoldRugPrice})
 </p>
+
+{services?.step1?.washFold?.["Area Rug Description"] && (
+  <p
+    style={{
+      fontSize: "14px",
+      color: "#666"
+    }}
+  >
+    {services?.step1?.washFold?.["Area Rug Description"]}
+  </p>
+)}
 
 <div style={counterRow}>
   <button
@@ -750,6 +829,17 @@ console.log({
       Down Comforter (${foldOnlyComforterPrice})
     </p>
 
+{services?.step1?.foldOnly?.["Comforter Description"] && (
+  <p
+    style={{
+      fontSize: "14px",
+      color: "#666"
+    }}
+  >
+    {services?.step1?.foldOnly?.["Comforter Description"]}
+  </p>
+)}
+
     <div style={counterRow}>
       <button
         onClick={() =>
@@ -785,6 +875,17 @@ console.log({
       Sleeping Bag (${foldOnlySleepingBagPrice})
     </p>
 
+{services?.step1?.foldOnly?.["Sleeping Bag Description"] && (
+  <p
+    style={{
+      fontSize: "14px",
+      color: "#666"
+    }}
+  >
+    {services?.step1?.foldOnly?.["Sleeping Bag Description"]}
+  </p>
+)}
+
     <div style={counterRow}>
       <button
         onClick={() =>
@@ -819,6 +920,17 @@ console.log({
     <p>
       Area Rug (${foldOnlyRugPrice})
     </p>
+
+{services?.step1?.foldOnly?.["Area Rug Description"] && (
+  <p
+    style={{
+      fontSize: "14px",
+      color: "#666"
+    }}
+  >
+    {services?.step1?.foldOnly?.["Area Rug Description"]}
+  </p>
+)}
 
     <div style={counterRow}>
       <button
