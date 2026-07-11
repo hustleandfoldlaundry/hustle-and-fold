@@ -7,7 +7,11 @@ import { doc, getDoc } from "@firebase/firestore/lite";
 
 export default function BookingStep2() {
   const navigate = useNavigate();
-  const { bookingData, setBookingData } = useBooking();
+  const {
+  bookingData,
+  setBookingData,
+  clearBooking,
+} = useBooking();
 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");

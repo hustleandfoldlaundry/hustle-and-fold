@@ -7,7 +7,11 @@ import ProgressBar from "../ProgressBar";
 export default function BookingStep4() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { bookingData } = useBooking();
+  const {
+  bookingData,
+  setBookingData,
+  clearBooking,
+} = useBooking();
 
   const termsRef = useRef(null);
 

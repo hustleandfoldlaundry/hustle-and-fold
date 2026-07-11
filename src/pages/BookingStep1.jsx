@@ -7,7 +7,11 @@ import { doc, getDoc } from "@firebase/firestore/lite";
 
 export default function BookingStep1() {
   const navigate = useNavigate();
-  const { bookingData, setBookingData } = useBooking();
+  const {
+  bookingData,
+  setBookingData,
+  clearBooking,
+} = useBooking();
 
   const [services, setServices] = useState({});
 
@@ -180,6 +184,41 @@ console.log({
   washFoldBeddingTotal +
   foldOnlyBeddingTotal +
   oversizedTotal;
+
+  function clearForm() {
+    console.log("CLEAR FORM RUNNING");
+  setWashFold(false);
+  setFoldOnly(false);
+
+  setWashFoldType("pound");
+  setFoldOnlyType("pound");
+
+  setWashFoldBags(1);
+  setFoldOnlyBags(1);
+
+  setWashFoldLbs(10);
+  setFoldOnlyLbs(10);
+
+  setWashFoldBedding(0);
+  setFoldOnlyBedding(0);
+
+  setWashFoldComforter(0);
+  setFoldOnlyComforter(0);
+
+  setWashFoldSleepingBag(0);
+  setFoldOnlySleepingBag(0);
+
+  setWashFoldRug(0);
+  setFoldOnlyRug(0);
+
+  setOtherCount(0);
+  setOtherText("");
+  setOtherConfirmed(false);
+  setShowOtherInput(false);
+
+  setError("");
+  clearBooking();
+}
 
   function handleNext() {
     if (
@@ -966,11 +1005,22 @@ console.log({
 )}
 
 <div style={card}>
-  <h3>Oversized Items</h3>
+  <h3>Other Items</h3>
 
-          <p>Other</p>
+{services?.step1?.other?.description && (
+  <p
+    style={{
+      fontSize: "14px",
+      color: "#666",
+      marginTop: "5px"
+    }}
+  >
+    {services?.step1?.other?.description}
+  </p>
+)}
 
-          <div style={counterRow}>
+<div style={counterRow}>
+
             <button
               onClick={() =>
                 setOtherCount(
@@ -1037,18 +1087,49 @@ console.log({
   ${total.toFixed(2)}
 </p>
 
-          <button
-            onClick={handleNext}
-            style={{
-              padding: "12px 20px",
-              borderRadius: "8px",
-              border: "none",
-              backgroundColor: "#2563eb",
-              color: "white"
-            }}
-          >
-            Next →
-          </button>
+<div
+  style={{
+    display: "flex",
+    justifyContent: "center",
+    gap: "10px",
+    marginTop: "15px"
+  }}
+>
+  <button
+  onClick={() => {
+    if (
+      window.confirm(
+        "Are you sure? This will clear the entire booking."
+      )
+    ) {
+      clearForm();
+    }
+  }}
+  style={{
+    padding: "12px 20px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    backgroundColor: "#fff",
+    color: "#333",
+    cursor: "pointer"
+  }}
+>
+  Clear Form
+</button>
+
+  <button
+    onClick={handleNext}
+    style={{
+      padding: "12px 20px",
+      borderRadius: "8px",
+      border: "none",
+      backgroundColor: "#2563eb",
+      color: "white"
+    }}
+  >
+    Next →
+  </button>
+</div>
         </div>
       </div>
     </div>

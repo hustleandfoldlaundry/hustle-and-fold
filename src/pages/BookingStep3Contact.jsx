@@ -5,7 +5,11 @@ import ProgressBar from "../ProgressBar";
 import Step3Progress from "../Step3Progress";
 export default function BookingStep3Contact() {
 const navigate = useNavigate();
-const { bookingData, setBookingData } = useBooking();
+const {
+  bookingData,
+  setBookingData,
+  clearBooking,
+} = useBooking();
 const [name, setName] = useState(bookingData.name || "");
 const [address, setAddress] = useState(bookingData.address || "");
 const [city, setCity] = useState(bookingData.city || "");

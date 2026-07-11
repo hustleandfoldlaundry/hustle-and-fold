@@ -6,7 +6,11 @@ import Step3Progress from "../Step3Progress";
 
 export default function BookingStep3Notes() {
   const navigate = useNavigate();
-  const { bookingData, setBookingData } = useBooking();
+  const {
+  bookingData,
+  setBookingData,
+  clearBooking,
+} = useBooking();
 
   const [notes, setNotes] = useState(bookingData.notes || "");
 

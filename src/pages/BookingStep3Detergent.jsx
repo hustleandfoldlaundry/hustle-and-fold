@@ -8,7 +8,11 @@ import { doc, getDoc } from "@firebase/firestore/lite";
 
 export default function BookingStep3Detergent() {
   const navigate = useNavigate();
-  const { bookingData, setBookingData } = useBooking();
+  const {
+  bookingData,
+  setBookingData,
+  clearBooking,
+} = useBooking();
 
   const [services, setServices] = useState({});
 

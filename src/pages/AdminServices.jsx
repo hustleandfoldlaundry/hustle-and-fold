@@ -1025,6 +1025,53 @@ await setDoc(
               : "Disabled"}
           </button>
         </div>
+
+        <div style={card}>
+  <h3>Other Items</h3>
+
+  <p>Other Description</p>
+
+  <textarea
+    value={
+      services?.step1?.other?.description || ""
+    }
+    onChange={(e) =>
+      setServices((prev) => ({
+        ...prev,
+        step1: {
+          ...prev.step1,
+          other: {
+            ...prev.step1?.other,
+            description: e.target.value
+          }
+        }
+      }))
+    }
+    placeholder="Customer description"
+    style={textarea}
+  />
+
+  <textarea
+    value={
+      services?.step1?.other?.notes || ""
+    }
+    onChange={(e) =>
+      setServices((prev) => ({
+        ...prev,
+        step1: {
+          ...prev.step1,
+          other: {
+            ...prev.step1?.other,
+            notes: e.target.value
+          }
+        }
+      }))
+    }
+    placeholder="Notes"
+     style={textarea}
+     />
+     </div>
+     
 {/* DETERGENTS */}
 
 <div style={card}>
