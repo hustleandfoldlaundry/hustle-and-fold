@@ -97,6 +97,15 @@ export default function BookingStep2() {
     return `${deliveryDay} by ${deliveryTime}`;
   }
 
+  function clearForm() {
+  setSelectedDate("");
+  setSelectedTime("");
+  setDeliverySpeed("");
+  setError("");
+
+
+}
+
   function handleNext() {
     if (!selectedDate || !selectedTime || !deliverySpeed) {
       setError("Please select a date, time, and delivery speed.");
@@ -266,18 +275,48 @@ export default function BookingStep2() {
         )}
 
         <div style={{ textAlign: "center", marginTop: "20px" }}>
-          <button
-            onClick={() => navigate("/")}
-            style={{ ...navButton, marginRight: "10px", backgroundColor: "#6b7280" }}
-          >
-            ← Back
-          </button>
+  <button
+    onClick={() => navigate("/")}
+    style={{
+      ...navButton,
+      marginRight: "10px",
+      backgroundColor: "#6b7280"
+    }}
+  >
+    ← Back
+  </button>
 
-          <button onClick={handleNext} style={navButton}>
-            Next →
-          </button>
+<button
+  onClick={() => {
+    if (
+      window.confirm(
+        "Are you sure? This will clear the entire Pickup Schedule booking page?"
+      )
+    ) {
+      clearForm();
+    }
+  }}
+  style={{
+    padding: "12px 20px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    backgroundColor: "#fff",
+    color: "#333",
+    cursor: "pointer",
+    marginRight: "10px"
+  }}
+>
+  Clear Form
+</button>
+
+  <button
+    onClick={handleNext}
+    style={navButton}
+  >
+    Next →
+  </button>
+</div>
         </div>
       </div>
-    </div>
   );
 }

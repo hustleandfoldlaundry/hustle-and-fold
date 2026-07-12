@@ -29,6 +29,12 @@ export default function BookingStep3Detergent() {
       bookingData.customerProvidedConfirmed || false
     );
 
+function clearForm() {
+  setDetergentType("");
+  setDetergentChoice("");
+  setCustomerProvidedConfirmed(false);
+}
+
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -322,6 +328,7 @@ if (detergentChoice === "Tide Free & Gentle") {
         </div>
 
         <div style={card}>
+
           <h3>Grand Total</h3>
 
           <h2 style={{ color: "#1e3a8a" }}>
@@ -336,32 +343,54 @@ if (detergentChoice === "Tide Free & Gentle") {
         )}
 
         <div
-          style={{
-            textAlign: "center",
-            marginTop: "20px"
-          }}
-        >
-          <button
-            onClick={() =>
-              navigate(
-                "/booking/step3/contact"
-              )
-            }
-            style={{
-              ...navButton,
-              marginRight: "10px"
-            }}
-          >
-            ← Back
-          </button>
+  style={{
+    textAlign: "center",
+    marginTop: "20px",
+    display: "flex",
+    justifyContent: "center",
+    gap: "10px"
+  }}
+>
+  <button
+    onClick={() =>
+      navigate(
+        "/booking/step3/contact"
+      )
+    }
+    style={navButton}
+  >
+    ← Back
+  </button>
 
-          <button
-            onClick={handleNext}
-            style={navButton}
-          >
-            Next →
-          </button>
-        </div>
+  <button
+    onClick={() => {
+      if (
+        window.confirm(
+          "Are you sure you want to clear this page?"
+        )
+      ) {
+        clearForm();
+      }
+    }}
+    style={{
+      padding: "12px 20px",
+      borderRadius: "8px",
+      border: "1px solid #ccc",
+      backgroundColor: "#fff",
+      color: "#333",
+      cursor: "pointer"
+    }}
+  >
+    Clear Form
+  </button>
+
+  <button
+    onClick={handleNext}
+    style={navButton}
+  >
+    Next →
+  </button>
+</div>
       </div>
     </div>
   );

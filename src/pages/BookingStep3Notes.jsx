@@ -23,6 +23,10 @@ export default function BookingStep3Notes() {
     (bookingData.hangingCareTotal || 0) +
     (bookingData.hangerTotal || 0);
 
+function clearForm() {
+  setNotes("");
+}
+
   function handleNext() {
     setBookingData({
       ...bookingData,
@@ -84,16 +88,43 @@ export default function BookingStep3Notes() {
         </div>
 
         <div style={{ textAlign: "center", marginTop: "20px" }}>
+          
           <button
-            onClick={() => navigate("/booking/step3/addons")}
-            style={{ ...navButton, marginRight: "10px" }}
-          >
-            ← Back
-          </button>
+  onClick={() => navigate("/booking/step3/addons")}
+  style={navButton}
+>
+  ← Back
+</button>
 
-          <button onClick={handleNext} style={navButton}>
-            Next →
-          </button>
+<button
+  onClick={() => {
+    if (
+      window.confirm(
+        "Are you sure you want to clear this page?"
+      )
+    ) {
+      clearForm();
+    }
+  }}
+  style={{
+    padding: "12px 20px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    backgroundColor: "#fff",
+    color: "#333",
+    cursor: "pointer",
+    margin: "0 10px"
+  }}
+>
+  Clear Form
+</button>
+
+<button
+  onClick={handleNext}
+  style={navButton}
+>
+  Next →
+</button>
         </div>
 
       </div>

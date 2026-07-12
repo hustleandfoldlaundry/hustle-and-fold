@@ -29,6 +29,17 @@ export default function BookingStep3AddOns() {
     bookingData.hangItems || 0
   );
 
+function clearForm() {
+  setAddons({
+    oxi: false,
+    color: false,
+    vinegar: false,
+    delicates: false
+  });
+
+  setHangItems(0);
+}
+
   const [hangerOption, setHangerOption] = useState(
     bookingData.hangerOption || "provided"
   );
@@ -329,27 +340,47 @@ export default function BookingStep3AddOns() {
           }}
         >
           <button
-            onClick={() =>
-              navigate(
-                "/booking/step3/detergent"
-              )
-            }
-            style={{
-              ...navButton,
-              marginRight: "10px"
-            }}
-          >
-            ← Back
-          </button>
+  onClick={() =>
+    navigate(
+      "/booking/step3/detergent"
+    )
+  }
+  style={navButton}
+>
+  ← Back
+</button>
 
-          <button
-            onClick={handleNext}
-            style={navButton}
-          >
-            Next →
-          </button>
-        </div>
+<button
+  onClick={() => {
+    if (
+      window.confirm(
+        "Are you sure you want to clear this page?"
+      )
+    ) {
+      clearForm();
+    }
+  }}
+  style={{
+    padding: "12px 20px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    backgroundColor: "#fff",
+    color: "#333",
+    cursor: "pointer",
+    margin: "0 10px"
+  }}
+>
+  Clear Form
+</button>
+
+<button
+  onClick={handleNext}
+  style={navButton}
+>
+  Next →
+</button>
       </div>
+    </div>
     </div>
   );
 }

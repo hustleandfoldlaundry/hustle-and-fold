@@ -24,6 +24,7 @@ const allowedZips = [
 "92590","92591","92592","92593",
 "92543","92544","92545"
 ];
+
 function formatPhoneNumber(value) {
 const numbers = value.replace(/\D/g, "").slice(0, 10);
 if (numbers.length < 4) return numbers;
@@ -62,6 +63,18 @@ email &&
 isValidZip(zip) &&
 isServiceableZip(zip) &&
 isValidEmail(email);
+
+function clearForm() {
+  setName("");
+  setAddress("");
+  setCity("");
+  setZip("");
+  setUnit("");
+  setPhone("");
+  setEmail("");
+  setError("");
+}
+
 function handleNext() {
 if (!isFormValid) {
 setError("Please complete all required fields correctly.");
@@ -193,26 +206,58 @@ return (
 
     {error && <p style={{ color: "red" }}>{error}</p>}
 
-    <div style={{ marginTop: "20px" }}>
-      <button
-        onClick={() => navigate("/booking/step2")}
-        style={{ ...navButton, backgroundColor: "#6b7280", marginRight: "10px" }}
-      >
-        ← Back
-      </button>
+    <div
+  style={{
+    marginTop: "20px",
+    display: "flex",
+    justifyContent: "center",
+    gap: "10px"
+  }}
+>
+  <button
+    onClick={() => navigate("/booking/step2")}
+    style={{
+      ...navButton,
+      backgroundColor: "#6b7280"
+    }}
+  >
+    ← Back
+  </button>
 
-      <button
-        onClick={handleNext}
-        disabled={!isFormValid}
-        style={{
-          ...navButton,
-          backgroundColor: isFormValid ? "#2563eb" : "#9ca3af",
-          cursor: isFormValid ? "pointer" : "not-allowed"
-        }}
-      >
-        Next →
-      </button>
-    </div>
+  <button
+    onClick={() => {
+      if (
+        window.confirm(
+          "Are you sure you want to clear this page?"
+        )
+      ) {
+        clearForm();
+      }
+    }}
+    style={{
+      padding: "12px 20px",
+      borderRadius: "8px",
+      border: "1px solid #ccc",
+      backgroundColor: "#fff",
+      color: "#333",
+      cursor: "pointer"
+    }}
+  >
+    Clear Form
+  </button>
+
+  <button
+    onClick={handleNext}
+    disabled={!isFormValid}
+    style={{
+      ...navButton,
+      backgroundColor: isFormValid ? "#2563eb" : "#9ca3af",
+      cursor: isFormValid ? "pointer" : "not-allowed"
+    }}
+  >
+    Next →
+  </button>
+</div>
 
   </div>
 </div>
