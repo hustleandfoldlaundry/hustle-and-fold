@@ -3,7 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import ProgressBar from "../ProgressBar";
 import { db } from "../firebase";
-import { doc, getDoc } from "@firebase/firestore/lite";
+import {
+  doc,
+  getDoc,
+  collection,
+  getDocs,
+  query,
+  where
+} from "@firebase/firestore/lite";
 
 export default function BookingStep2() {
   const navigate = useNavigate();
@@ -18,6 +25,10 @@ export default function BookingStep2() {
   const [deliverySpeed, setDeliverySpeed] = useState("");
   const [error, setError] = useState("");
   const [schedule, setSchedule] = useState({});
+  const [orders, setOrders] = useState([]);
+  const [maxBookingsPerSlot, setMaxBookingsPerSlot] =
+  useState(3);
+  const [deliveryNote, setDeliveryNote] = useState("");
 
   useEffect(() => {
     async function loadSchedule() {
@@ -26,23 +37,138 @@ export default function BookingStep2() {
         const snap = await getDoc(ref);
 
         if (snap.exists()) {
-          setSchedule(snap.data());
-        }
+  const data = snap.data();
+
+  setSchedule(data);
+  setDeliveryNote(data.deliveryNote || "");
+
+  setMaxBookingsPerSlot(
+  data.maxBookingsPerSlot || 3
+);
+}
       } catch (err) {
         console.error("Error loading schedule:", err);
       }
     }
 
-    loadSchedule();
-  }, []);
+      async function loadOrders() {
+    try {
+      const snapshot = await getDocs(
+        collection(db, "orders")
+      );
 
-  const availableDates = Object.keys(schedule)
-    .filter((date) => schedule[date]?.enabled)
-    .sort();
+      setOrders(
+        snapshot.docs.map((doc) => doc.data())
+      );
+    } catch (err) {
+      console.error("Error loading orders:", err);
+    }
+  }
+
+  loadSchedule();
+  loadOrders();
+}, []);
+
+  const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const availableDates = Object.keys(schedule)
+  .filter((date) => {
+    const scheduleDate = new Date(
+      date + "T00:00:00"
+    );
+
+    return (
+      schedule[date]?.enabled &&
+      scheduleDate >= today
+    );
+  })
+  .sort();
+``
 
   const availableTimes = selectedDate
-    ? schedule[selectedDate]?.slots || []
-    : [];
+  ? (schedule[selectedDate]?.slots || []).filter(
+      (time) => {
+        const bookedCount = orders.filter(
+          (order) =>
+            order.pickupDate === selectedDate &&
+            order.pickupTime === time
+        ).length;
+
+        if (bookedCount >= maxBookingsPerSlot) {
+          return false;
+        }
+
+        const todayString = new Date()
+          .toISOString()
+          .split("T")[0];
+
+        if (selectedDate !== todayString) {
+          return true;
+        }
+
+        const parsed = parseTimeString(time);
+
+        if (!parsed) return false;
+
+        const slotTime = new Date();
+        slotTime.setHours(
+          parsed.hours,
+          parsed.minutes,
+          0,
+          0
+        );
+
+        const cutoffTime = new Date();
+        cutoffTime.setHours(
+          cutoffTime.getHours() + 1
+        );
+
+        return slotTime > cutoffTime;
+      }
+    )
+  : [];
+
+  const availableDateObjects = availableDates.map(
+  (date) => new Date(date + "T00:00:00")
+);
+
+const currentMonth =
+  availableDateObjects.length > 0
+    ? availableDateObjects[0]
+    : new Date();
+
+const firstDayOfMonth = new Date(
+  currentMonth.getFullYear(),
+  currentMonth.getMonth(),
+  1
+);
+
+const daysInMonth = new Date(
+  currentMonth.getFullYear(),
+  currentMonth.getMonth() + 1,
+  0
+).getDate();
+
+const startingDay = firstDayOfMonth.getDay();
+
+const calendarDays = [];
+
+for (let i = 0; i < startingDay; i++) {
+  calendarDays.push(null);
+}
+
+for (let day = 1; day <= daysInMonth; day++) {
+  calendarDays.push(day);
+}
+
+  const amTimes = availableTimes.filter((time) =>
+  time.toUpperCase().includes("AM")
+);
+
+  const pmTimes = availableTimes.filter((time) =>
+  time.toUpperCase().includes("PM")
+);
 
   const deliveryTotal = deliverySpeed === "12" ? 25 : 0;
   const grandTotal = (bookingData.step1Total || 0) + deliveryTotal;
@@ -175,58 +301,140 @@ export default function BookingStep2() {
         <div style={card}>
           <h3>Available Pickup Dates</h3>
 
-          {availableDates.length === 0 ? (
-            <p>No available dates set by admin yet.</p>
-          ) : (
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "center"
-              }}
-            >
-              {availableDates.map((date) => (
-                <button
-                  key={date}
-                  onClick={() => {
-                    setSelectedDate(date);
-                    setSelectedTime("");
-                  }}
-                  style={optionCard(selectedDate, date)}
-                >
-                  {formatDateLabel(date)}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+{availableDates.length === 0 ? (
+  <p>No available dates set by admin yet.</p>
+) : (
+  
+  <div>
+  <h3 style={{ textAlign: "center", color: "#1e3a8a" }}>
+    {currentMonth.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric"
+    })}
+  </h3>
 
-        <div style={card}>
-          <h3>Available Pickup Times</h3>
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(7, 1fr)",
+      gap: "6px",
+      marginTop: "10px",
+      textAlign: "center"
+    }}
+  >
+    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+      <div
+        key={day}
+        style={{
+          fontWeight: "bold",
+          color: "#1e3a8a",
+          fontSize: "13px"
+        }}
+      >
+        {day}
+      </div>
+    ))}
+
+    {calendarDays.map((day, index) => {
+      if (!day) {
+        return <div key={`empty-${index}`} />;
+      }
+
+      const dateString = `${currentMonth.getFullYear()}-${String(
+        currentMonth.getMonth() + 1
+      ).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+      const isAvailable = availableDates.includes(dateString);
+      const isSelected = selectedDate === dateString;
+
+      return (
+        <button
+          key={dateString}
+          disabled={!isAvailable}
+          onClick={() => {
+            if (!isAvailable) return;
+
+            setSelectedDate(dateString);
+            setSelectedTime("");
+          }}
+          style={{
+            padding: "10px 0",
+            borderRadius: "8px",
+            border: "none",
+            backgroundColor: isSelected
+              ? "#2563eb"
+              : isAvailable
+              ? "#dbeafe"
+              : "#e5e7eb",
+            color: isSelected
+              ? "white"
+              : isAvailable
+              ? "#1e3a8a"
+              : "#9ca3af",
+            cursor: isAvailable ? "pointer" : "not-allowed",
+            fontWeight: isSelected ? "bold" : "normal"
+          }}
+        >
+          {day}
+        </button>
+      );
+    })}
+  </div>
+</div>
+)}
+</div>
+
+<div style={card}>
+  <h3>Available Pickup Times</h3>
 
           {!selectedDate ? (
-            <p>Select a date first</p>
-          ) : availableTimes.length === 0 ? (
-            <p>No available times for this date</p>
-          ) : (
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "center"
-              }}
-            >
-              {availableTimes.map((time) => (
-                <button
-                  key={time}
-                  onClick={() => setSelectedTime(time)}
-                  style={optionCard(selectedTime, time)}
-                >
-                  {time}
-                </button>
-              ))}
-            </div>
-          )}
+  <p>Select a date first</p>
+) : availableTimes.length === 0 ? (
+  <p>No available times for this date</p>
+) : (
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: "20px"
+    }}
+  >
+    <div>
+      <h4 style={{ textAlign: "center" }}>AM</h4>
+
+      {amTimes.map((time) => (
+        <button
+          key={time}
+          onClick={() => setSelectedTime(time)}
+          style={{
+            ...optionCard(selectedTime, time),
+            width: "100%"
+          }}
+        >
+          {time}
+        </button>
+      ))}
+    </div>
+
+    <div>
+      <h4 style={{ textAlign: "center" }}>PM</h4>
+
+      {pmTimes.map((time) => (
+        <button
+          key={time}
+          onClick={() => setSelectedTime(time)}
+          style={{
+            ...optionCard(selectedTime, time),
+            width: "100%"
+          }}
+        >
+          {time}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
+
         </div>
 
         <div style={card}>
@@ -265,6 +473,18 @@ export default function BookingStep2() {
             <p style={{ fontSize: "18px", color: "#1e3a8a" }}>
               {getEstimatedDelivery()}
             </p>
+
+            {deliveryNote && (
+  <p
+    style={{
+      marginTop: "10px",
+      fontSize: "14px",
+      color: "#666"
+    }}
+  >
+    {deliveryNote}
+  </p>
+)}
           </div>
         )}
 

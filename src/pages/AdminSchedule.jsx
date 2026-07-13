@@ -7,6 +7,9 @@ export default function AdminSchedule() {
   const [selectedDate, setSelectedDate] = useState("");
   const [schedule, setSchedule] = useState({});
   const [activeTab, setActiveTab] = useState("Schedule");
+  const [deliveryNote, setDeliveryNote] = useState("");
+  const [maxBookingsPerSlot, setMaxBookingsPerSlot] =
+  useState(3);
 
   useEffect(() => {
     async function loadSchedule() {
@@ -15,8 +18,16 @@ export default function AdminSchedule() {
         const snap = await getDoc(ref);
 
         if (snap.exists()) {
-          setSchedule(snap.data());
-        }
+  const data = snap.data();
+
+  setSchedule(data);
+  setDeliveryNote(data.deliveryNote || "");
+
+  setMaxBookingsPerSlot(
+  data.maxBookingsPerSlot || 3
+);
+
+}
       } catch (err) {
         console.error("Error loading schedule:", err);
       }
@@ -118,7 +129,12 @@ export default function AdminSchedule() {
 
   async function saveSchedule() {
     try {
-      await setDoc(doc(db, "admin", "schedule"), schedule);
+      await setDoc(doc(db, "admin", "schedule"), {
+  ...schedule,
+  deliveryNote,
+  maxBookingsPerSlot
+});
+
       alert("Schedule saved ✅");
     } catch (err) {
       console.error(err);
@@ -256,6 +272,44 @@ export default function AdminSchedule() {
             )}
           </div>
         ))}
+
+<div style={{ marginTop: "20px" }}>
+  <h3>Delivery Note</h3>
+
+  <textarea
+    value={deliveryNote}
+    onChange={(e) =>
+      setDeliveryNote(e.target.value)
+    }
+    placeholder="This note appears under Estimated Delivery on Booking Step 2"
+    style={{
+      width: "100%",
+      minHeight: "80px",
+      padding: "10px",
+      borderRadius: "8px"
+    }}
+  />
+</div>
+
+<div style={{ marginTop: "20px" }}>
+  <h3>Max Bookings Per Slot</h3>
+
+  <input
+    type="number"
+    min="1"
+    value={maxBookingsPerSlot}
+    onChange={(e) =>
+      setMaxBookingsPerSlot(
+        Number(e.target.value)
+      )
+    }
+    style={{
+      width: "100%",
+      padding: "10px",
+      borderRadius: "8px"
+    }}
+  />
+</div>
 
         <button
           onClick={saveSchedule}
