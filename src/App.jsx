@@ -28,6 +28,7 @@ export default function App() {
         <Route path="/booking/success" element={<BookingSuccess />} />
         <Route path="/admin/schedule" element={<AdminSchedule />} />
         <Route path="/admin/services" element={<AdminServices />} />
+        <Route path="/terms" element={<Terms />} />
         <Route
   path="/admin-login"
   element={<AdminLogin />}
