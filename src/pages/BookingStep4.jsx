@@ -59,13 +59,41 @@ export default function BookingStep4() {
     hangerTotal;
 
   function sectionContentStyle(name) {
-    return {
-      maxHeight: openSection === name ? "300px" : "0px",
-      overflow: "hidden",
-      transition: "max-height 0.3s ease, margin-top 0.3s ease",
-      marginTop: openSection === name ? "10px" : "0px"
-    };
+  return {
+    display: openSection === name ? "block" : "none",
+    marginTop: "10px"
+  };
+}
+
+function getEstimatedDelivery() {
+  if (
+    !bookingData.pickupDate ||
+    !bookingData.pickupTime ||
+    !bookingData.deliverySpeed
+  ) {
+    return "Not available";
   }
+
+  const deliveryDate = new Date(
+    `${bookingData.pickupDate} ${bookingData.pickupTime}`
+  );
+
+  const addHours = bookingData.deliverySpeed === "12" ? 12 : 24;
+  deliveryDate.setHours(deliveryDate.getHours() + addHours);
+
+  const deliveryDay = deliveryDate.toLocaleDateString("en-US", {
+  month: "long",
+  day: "numeric",
+  year: "numeric"
+});
+
+  const deliveryTime = deliveryDate.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit"
+  });
+
+  return `${deliveryDay} by ${deliveryTime}`;
+}
 
   function getDetergentLabel() {
     if (bookingData.detergentType === "original") {
@@ -122,18 +150,61 @@ export default function BookingStep4() {
             {bookingData.foldOnly && (
               <p>{bookingData.foldOnlyLbs} lbs Fold Only</p>
             )}
-            {bookingData.beddingSets > 0 && (
-              <p>Bedding Sets: {bookingData.beddingSets}</p>
-            )}
-            {bookingData.comforter > 0 && (
-              <p>Down Comforter: {bookingData.comforter}</p>
-            )}
-            {bookingData.sleepingBag > 0 && (
-              <p>Sleeping Bag: {bookingData.sleepingBag}</p>
-            )}
-            {bookingData.rug > 0 && (
-              <p>Area Rug: {bookingData.rug}</p>
-            )}
+            {bookingData.washFoldBedding > 0 && (
+  <p>
+    Wash & Fold Bedding Sets:
+    {bookingData.washFoldBedding}
+  </p>
+)}
+
+{bookingData.foldOnlyBedding > 0 && (
+  <p>
+    Fold Only Bedding Sets:
+    {bookingData.foldOnlyBedding}
+  </p>
+)}
+
+{bookingData.washFoldComforter > 0 && (
+  <p>
+    Wash & Fold Comforters:
+    {bookingData.washFoldComforter}
+  </p>
+)}
+
+{bookingData.foldOnlyComforter > 0 && (
+  <p>
+    Fold Only Comforters:
+    {bookingData.foldOnlyComforter}
+  </p>
+)}
+
+{bookingData.washFoldSleepingBag > 0 && (
+  <p>
+    Wash & Fold Sleeping Bags:
+    {bookingData.washFoldSleepingBag}
+  </p>
+)}
+
+{bookingData.foldOnlySleepingBag > 0 && (
+  <p>
+    Fold Only Sleeping Bags:
+    {bookingData.foldOnlySleepingBag}
+  </p>
+)}
+
+{bookingData.washFoldRug > 0 && (
+  <p>
+    Wash & Fold Area Rugs:
+    {bookingData.washFoldRug}
+  </p>
+)}
+
+{bookingData.foldOnlyRug > 0 && (
+  <p>
+    Fold Only Area Rugs:
+    {bookingData.foldOnlyRug}
+  </p>
+)}
             {bookingData.otherCount > 0 && (
               <p>Other: {bookingData.otherText}</p>
             )}
@@ -157,14 +228,27 @@ export default function BookingStep4() {
           <h3>🚚 Pickup & Delivery</h3>
 
           <div style={sectionContentStyle("delivery")}>
-            <p>Date: {bookingData.pickupDate || "Not selected"}</p>
+            <p>
+  Date:{" "}
+  {bookingData.pickupDate
+    ? new Date(bookingData.pickupDate).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+      })
+    : "Not selected"}
+</p>
+
             <p>Time: {bookingData.pickupTime || "Not selected"}</p>
             <p>
-              {bookingData.deliverySpeed === "12"
-                ? "12 Hour Service (+$25)"
-                : "24 Hour Service (Included)"}
-            </p>
-            <p><strong>Total: ${deliveryTotal.toFixed(2)}</strong></p>
+  {bookingData.deliverySpeed === "12"
+    ? "12 Hour Service (+$25)"
+    : "24 Hour Service (Included)"}
+</p>
+
+<p>Estimated Delivery: {getEstimatedDelivery()}</p>
+
+<p><strong>Total: ${deliveryTotal.toFixed(2)}</strong></p>
           </div>
         </div>
 
