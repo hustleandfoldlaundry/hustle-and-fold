@@ -78,6 +78,10 @@ function getEstimatedDelivery() {
     `${bookingData.pickupDate} ${bookingData.pickupTime}`
   );
 
+  console.log("Pickup Date:", bookingData.pickupDate);
+console.log("Pickup Time:", bookingData.pickupTime);
+console.log("Initial Date:", deliveryDate);
+
   const addHours = bookingData.deliverySpeed === "12" ? 12 : 24;
   deliveryDate.setHours(deliveryDate.getHours() + addHours);
 
