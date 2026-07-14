@@ -74,9 +74,16 @@ function getEstimatedDelivery() {
     return "Not available";
   }
 
-  const deliveryDate = new Date(
-    `${bookingData.pickupDate} ${bookingData.pickupTime}`
-  );
+  const [year, month, day] = bookingData.pickupDate.split("-").map(Number);
+
+const deliveryDate = new Date(
+  year,
+  month - 1,
+  day,
+  10,
+  0,
+  0
+);
 
   console.log("Pickup Date:", bookingData.pickupDate);
 console.log("Pickup Time:", bookingData.pickupTime);
@@ -235,7 +242,9 @@ console.log("Initial Date:", deliveryDate);
             <p>
   Date:{" "}
   {bookingData.pickupDate
-    ? new Date(bookingData.pickupDate).toLocaleDateString("en-US", {
+    ? new Date(
+        bookingData.pickupDate + "T12:00:00"
+      ).toLocaleDateString("en-US", {
         month: "long",
         day: "numeric",
         year: "numeric"
