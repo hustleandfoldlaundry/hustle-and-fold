@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AdminDashboard from "./pages/AdminDashboard";
+import Home from "./pages/Home";
 import BookingStep1 from "./pages/BookingStep1";
 import BookingStep2 from "./pages/BookingStep2";
 import BookingStep3Contact from "./pages/BookingStep3Contact";
@@ -18,7 +19,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/admin" element={<AdminLogin />} />
-        <Route path="/" element={<BookingStep1 />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/booking/step1" element={<BookingStep1 />} />
         <Route path="/booking/step2" element={<BookingStep2 />} />
         <Route path="/booking/step3/contact" element={<BookingStep3Contact />} />
         <Route path="/booking/step3/detergent" element={<BookingStep3Detergent />} />
@@ -29,14 +31,8 @@ export default function App() {
         <Route path="/admin/schedule" element={<AdminSchedule />} />
         <Route path="/admin/services" element={<AdminServices />} />
         <Route path="/terms" element={<Terms />} />
-        <Route
-  path="/admin-login"
-  element={<AdminLogin />}
-/>
-<Route
-  path="/admin/dashboard"
-  element={<AdminDashboard />}
-/>
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   );
