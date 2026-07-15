@@ -13,6 +13,7 @@ import Terms from "./pages/Terms";
 import AdminSchedule from "./pages/AdminSchedule";
 import AdminServices from "./pages/AdminServices";
 import AdminLogin from "./pages/AdminLogin";
+import CustomerHome from "./pages/CustomerHome";
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/customer" element={<CustomerHome />} />
       </Routes>
     </BrowserRouter>
   );
