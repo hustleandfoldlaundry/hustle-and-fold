@@ -79,7 +79,7 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => navigate("/adminLogin")}
+            onClick={() => navigate("/admin")}
             style={{
               backgroundColor: "#1f2937",
               color: "white",
