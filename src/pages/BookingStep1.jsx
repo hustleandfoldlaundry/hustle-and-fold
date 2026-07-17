@@ -4,6 +4,7 @@ import { useBooking } from "../context/BookingContext";
 import ProgressBar from "../ProgressBar";
 import { db } from "../firebase";
 import { doc, getDoc } from "@firebase/firestore/lite";
+import logo from "../assets/HF Logo.png";
 
 export default function BookingStep1() {
   const navigate = useNavigate();
@@ -308,6 +309,15 @@ console.log({
     >
       <div style={{ width: "100%", maxWidth: "500px" }}>
         <ProgressBar step={1} />
+
+<img
+  src={logo}
+  alt="Hustle & Fold Logo"
+  style={{
+    width: "500px",
+    marginBottom: "10px"
+  }}
+  />
 
         <h2
           style={{

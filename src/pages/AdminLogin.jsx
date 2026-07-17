@@ -2,6 +2,7 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/HF Logo.png";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -19,14 +20,17 @@ export default function AdminLogin() {
         email,
         password
       );
+
     localStorage.setItem("adminLoggedIn", "true");
-      navigate("/admin/dashboard");
+
+    navigate("/admin/dashboard");
     } catch (err) {
       setError("Invalid email or password.");
     }
   }
 
   return (
+    
     <div
       style={{
         minHeight: "100vh",
@@ -46,6 +50,16 @@ export default function AdminLogin() {
           boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
         }}
       >
+
+        <img
+          src={logo}
+          alt="Hustle & Fold Logo"
+          style={{
+            width: "350px",
+            marginBottom: "10px"
+          }}
+          />
+
         <h2>Admin Login</h2>
 
         <input
@@ -56,7 +70,7 @@ export default function AdminLogin() {
             setEmail(e.target.value)
           }
           style={{
-            width: "100%",
+            width: "95%",
             padding: "10px",
             marginTop: "10px"
           }}
@@ -70,7 +84,7 @@ export default function AdminLogin() {
             setPassword(e.target.value)
           }
           style={{
-            width: "100%",
+            width: "95%",
             padding: "10px",
             marginTop: "10px"
           }}

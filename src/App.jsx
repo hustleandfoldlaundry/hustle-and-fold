@@ -14,6 +14,8 @@ import AdminSchedule from "./pages/AdminSchedule";
 import AdminServices from "./pages/AdminServices";
 import AdminLogin from "./pages/AdminLogin";
 import CustomerHome from "./pages/CustomerHome";
+import CustomerLogin from "./pages/CustomerLogin";
+import CreateAccount from "./pages/CreateAccount";
 
 export default function App() {
   return (
@@ -35,6 +37,8 @@ export default function App() {
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/customer" element={<CustomerHome />} />
+        <Route path="/customer-login" element={<CustomerLogin />} />
+        <Route path="/create-account" element={<CreateAccount />} />
       </Routes>
     </BrowserRouter>
   );

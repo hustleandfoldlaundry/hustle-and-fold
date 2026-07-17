@@ -77,6 +77,7 @@ export default function CustomerHome() {
           </button>
 
           <button
+          onClick={() => navigate("/customer-login")}
             style={{
               backgroundColor: "#1f2937",
               color: "white",
@@ -92,7 +93,8 @@ export default function CustomerHome() {
           </button>
 
           <button
-            style={{
+          onClick={() => navigate("/create-account")}
+  style={{
               backgroundColor: "#059669",
               color: "white",
               border: "none",
@@ -103,6 +105,7 @@ export default function CustomerHome() {
               minWidth: "240px"
             }}
           >
+
             Create Account
           </button>
         </div>
