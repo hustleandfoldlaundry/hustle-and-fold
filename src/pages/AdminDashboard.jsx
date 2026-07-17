@@ -7,8 +7,14 @@ import {
   updateDoc
 } from "@firebase/firestore/lite";
 import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 export default function AdminDashboard() {
+  const isLoggedIn = localStorage.getItem("adminLoggedIn");
+
+if (!isLoggedIn) {
+  return <Navigate to="/admin" replace />;
+}
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
@@ -384,6 +390,24 @@ export default function AdminDashboard() {
             Refresh
           </button>
         </div>
+
+<button
+  onClick={() => {
+    localStorage.removeItem("adminLoggedIn");
+    navigate("/admin");
+  }}
+  style={{
+    marginLeft: "10px",
+    padding: "8px 14px",
+    borderRadius: "6px",
+    border: "none",
+    backgroundColor: "#dc2626",
+    color: "white",
+    cursor: "pointer"
+  }}
+>
+  Logout
+</button>
 
         <div
           style={{

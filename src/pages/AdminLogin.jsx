@@ -19,7 +19,7 @@ export default function AdminLogin() {
         email,
         password
       );
-
+    localStorage.setItem("adminLoggedIn", "true");
       navigate("/admin/dashboard");
     } catch (err) {
       setError("Invalid email or password.");
