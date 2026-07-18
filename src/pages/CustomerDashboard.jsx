@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import logo from "../assets/HF Logo.png";
 import { auth } from "../firebase";
 import { useEffect, useState } from "react";
-import { doc, getDoc, updateDoc } from "@firebase/firestore/lite";
+import { doc, getDoc, updateDoc, collection, getDocs } from "@firebase/firestore/lite";
 import { db } from "../firebase";
 import { signOut } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
@@ -11,6 +11,7 @@ export default function CustomerDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [customer, setCustomer] = useState(null);
+  const [orders, setOrders] = useState([]);
   const [preferredDetergent, setPreferredDetergent] = useState("");
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [pickupAddress, setPickupAddress] = useState("");
@@ -54,6 +55,23 @@ setVinegarRinse(data.vinegarRinse || false);
 setPickupAddress(data.pickupAddress || "");
 
 setDeliveryAddress(data.deliveryAddress || "");
+
+const ordersSnapshot = await getDocs(
+  collection(db, "orders")
+);
+
+const customerOrders = ordersSnapshot.docs
+  .map((doc) => ({
+    id: doc.id,
+    ...doc.data()
+  }))
+  .filter(
+    (order) =>
+      order.email?.toLowerCase() ===
+      user.email?.toLowerCase()
+  );
+
+setOrders(customerOrders);
 
 }}
 
@@ -100,7 +118,7 @@ setDeliveryAddress(data.deliveryAddress || "");
           </h1>
 
           <p>
-  Welcome back, {user?.email || "Customer"}!
+  Welcome back, {customer?.firstName || "Customer"}!
 </p>
 
 <div
@@ -181,7 +199,68 @@ setDeliveryAddress(data.deliveryAddress || "");
               Order History
             </h2>
 
-            <p>No previous orders.</p>
+<p>
+  Logged in as: {user?.email}
+</p>
+
+<p>
+  Orders found: {orders.length}
+</p>
+
+
+            {orders.length === 0 ? (
+  <p>No previous orders.</p>
+) : (
+  orders.map((order, index) => (
+    <div
+      key={index}
+      style={{
+        padding: "10px",
+        marginBottom: "10px",
+        border: "1px solid #e5e7eb",
+        borderRadius: "8px"
+      }}
+    >
+      <p>
+        <strong>Date:</strong> {order.pickupDate}
+      </p>
+
+      <p>
+        <strong>Status:</strong> {order.status}
+      </p>
+
+      <p>
+  <strong>Services:</strong>
+</p>
+
+<ul style={{ marginTop: "5px" }}>
+  {order.washFold && <li>Wash & Fold</li>}
+  {order.foldOnly && <li>Fold Only</li>}
+</ul>
+
+      <p>
+  <strong>Total:</strong> ${order.grandTotal}
+</p>
+
+<button
+  onClick={() => navigate("/booking/step1")}
+  style={{
+    marginTop: "10px",
+    padding: "8px 16px",
+    backgroundColor: "#1e3a8a",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer"
+  }}
+>
+  Reorder
+</button>
+
+    </div>
+  ))
+)}
+
           </div>
         </div>
 
