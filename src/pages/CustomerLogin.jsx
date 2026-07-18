@@ -89,6 +89,8 @@ export default function CustomerLogin() {
       );
 
       alert("Login successful!");
+      
+      navigate("/customer-dashboard");
 
     } catch (err) {
       alert("Invalid email or password.");

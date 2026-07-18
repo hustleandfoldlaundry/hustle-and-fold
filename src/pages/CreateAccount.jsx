@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import logo from "../assets/HF Logo.png";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
+import { db } from "../firebase";
+import { doc, setDoc } from "@firebase/firestore/lite";
+
 
 export default function CreateAccount() {
   const navigate = useNavigate();
@@ -96,11 +99,23 @@ export default function CreateAccount() {
         <button
   onClick={async () => {
     try {
-      await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const userCredential =
+  await createUserWithEmailAndPassword(
+    auth,
+    email,
+    password
+  );
+
+  await setDoc(
+  doc(db, "customers", userCredential.user.uid),
+  {
+    firstName,
+    lastName,
+    email,
+    phone,
+    createdAt: new Date().toISOString()
+  }
+);
 
       alert("Account created successfully!");
 
