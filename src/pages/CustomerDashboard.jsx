@@ -5,19 +5,28 @@ import { useEffect, useState } from "react";
 import { doc, getDoc, updateDoc } from "@firebase/firestore/lite";
 import { db } from "../firebase";
 import { signOut } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function CustomerDashboard() {
   const navigate = useNavigate();
-  const user = auth.currentUser;
+  const [user, setUser] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [preferredDetergent, setPreferredDetergent] = useState("");
   const [specialInstructions, setSpecialInstructions] = useState("");
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
   const [oxiClean, setOxiClean] = useState(false);
   const [colorSaver, setColorSaver] = useState(false);
   const [vinegarRinse, setVinegarRinse] = useState(false);
 
   useEffect(() => {
-  async function loadCustomer() {
+  const unsubscribe = onAuthStateChanged(
+  auth,
+  (currentUser) => {
+    setUser(currentUser);
+  }
+);
+    async function loadCustomer() {
     if (!user) return;
 
     const docRef = doc(db, "customers", user.uid);
@@ -41,9 +50,15 @@ setOxiClean(data.oxiClean || false);
 setColorSaver(data.colorSaver || false);
 
 setVinegarRinse(data.vinegarRinse || false);
-  }}
+
+setPickupAddress(data.pickupAddress || "");
+
+setDeliveryAddress(data.deliveryAddress || "");
+
+}}
 
   loadCustomer();
+  return () => unsubscribe();
 }, [user]);
 
   return (
@@ -346,9 +361,72 @@ onChange={(e) =>
   {customer?.phone || "Loading..."}
 </p>
 
+
+<textarea
+value={pickupAddress}
+onChange={(e) =>
+  setPickupAddress(e.target.value)
+}
+  rows="3"
+  placeholder="Enter pickup address"
+  style={{
+    width: "95%",
+    padding: "10px",
+    borderRadius: "8px",
+    resize: "vertical",
+    marginBottom: "15px"
+  }}
+/>
+
 <p>
-  <strong>Address:</strong> Not Set
+  <strong>Delivery Address:</strong>
 </p>
+
+<textarea
+value={deliveryAddress}
+onChange={(e) =>
+  setDeliveryAddress(e.target.value)
+}
+  rows="3"
+  placeholder="Enter delivery address"
+  style={{
+    width: "95%",
+    padding: "10px",
+    borderRadius: "8px",
+    resize: "vertical"
+  }}
+/>
+
+<button
+  onClick={async () => {
+    try {
+      await updateDoc(
+        doc(db, "customers", user.uid),
+        {
+          pickupAddress,
+          deliveryAddress
+        }
+      );
+
+      alert("Addresses saved!");
+    } catch (err) {
+      alert(err.message);
+    }
+  }}
+  style={{
+    width: "100%",
+    marginTop: "15px",
+    padding: "12px",
+    backgroundColor: "#1e3a8a",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer"
+  }}
+>
+  Save Addresses
+</button>
+
           </div>
         </div>
       </div>
