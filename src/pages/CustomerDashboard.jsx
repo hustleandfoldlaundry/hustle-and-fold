@@ -243,7 +243,11 @@ setOrders(customerOrders);
 </p>
 
 <button
-  onClick={() => navigate("/booking/step1")}
+  onClick={() =>
+  navigate("/booking/step1", {
+    state: { reorderData: order }
+  })
+}
   style={{
     marginTop: "10px",
     padding: "8px 16px",

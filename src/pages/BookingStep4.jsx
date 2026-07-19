@@ -434,6 +434,8 @@ console.log("Initial Date:", deliveryDate);
                 createdAt: new Date().toISOString()
               };
 
+              console.log("ORDER DATA:", orderData);
+
               await addDoc(collection(db, "orders"), orderData);
 
               navigate("/booking/success", { state: { orderId } });

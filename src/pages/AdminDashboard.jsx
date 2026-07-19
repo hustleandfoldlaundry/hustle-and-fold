@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { db } from "../firebase";
-import {
-  collection,
-  getDocs,
-  doc,
-  updateDoc
-} from "@firebase/firestore/lite";
+import { collection, getDocs, doc, updateDoc} from "@firebase/firestore/lite";
 import { useNavigate } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 

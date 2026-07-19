@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import ProgressBar from "../ProgressBar";
 import { db } from "../firebase";
@@ -8,17 +8,15 @@ import logo from "../assets/HF Logo.png";
 
 export default function BookingStep1() {
   const navigate = useNavigate();
-  const {
-  bookingData,
-  setBookingData,
-  clearBooking,
-} = useBooking();
-
+  const location = useLocation();
+  const reorderData = location.state?.reorderData;
+  console.log("washFoldType:", reorderData?.washFoldType);
+  console.log(reorderData);
+  const { bookingData, setBookingData, clearBooking, } = useBooking();
   const [services, setServices] = useState({});
-
-  const [washFold, setWashFold] = useState(false);
-  const [foldOnly, setFoldOnly] = useState(false);
-  const [washFoldType, setWashFoldType] = useState("pound");
+  const [washFold, setWashFold] = useState(reorderData?.washFold || false);
+  const [foldOnly, setFoldOnly] = useState(reorderData?.foldOnly || false);
+  const [washFoldType, setWashFoldType] = useState(reorderData?.washFoldType || "pound");
 
   useEffect(() => {
   if (
@@ -32,25 +30,20 @@ export default function BookingStep1() {
   const [washFoldBags, setWashFoldBags] = useState(1);
   const [washFoldLbs, setWashFoldLbs] = useState(10);
   const [foldOnlyLbs, setFoldOnlyLbs] = useState(10);
-  const [foldOnlyType, setFoldOnlyType] = useState("pound");
+  const [foldOnlyType, setFoldOnlyType] = useState(reorderData?.foldOnlyType || "pound");
   const [foldOnlyBags, setFoldOnlyBags] = useState(1);
   const [washFoldBedding, setWashFoldBedding] = useState(0);
   const [foldOnlyBedding, setFoldOnlyBedding] = useState(0);
-
   const [washFoldComforter, setWashFoldComforter] = useState(0);
   const [foldOnlyComforter, setFoldOnlyComforter] = useState(0);
-
   const [washFoldSleepingBag, setWashFoldSleepingBag] = useState(0);
   const [foldOnlySleepingBag, setFoldOnlySleepingBag] = useState(0);
-
   const [washFoldRug, setWashFoldRug] = useState(0);
   const [foldOnlyRug, setFoldOnlyRug] = useState(0);
-
   const [otherCount, setOtherCount] = useState(0);
   const [otherText, setOtherText] = useState("");
   const [otherConfirmed, setOtherConfirmed] = useState(false);
   const [showOtherInput, setShowOtherInput] = useState(false);
-
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -77,53 +70,37 @@ export default function BookingStep1() {
 
   const washFoldBagPrice =
     Number(services?.step1?.washFold?.pricePerBag || 35);
+  
   const foldOnlyPrice =
     Number(services?.step1?.foldOnly?.pricePerLb || 1);
 
-    const foldOnlyBagPrice =
-  Number(
-    services?.step1?.foldOnly?.["Price Per Bag"] || 15
-  );
+  const foldOnlyBagPrice =
+    Number(services?.step1?.foldOnly?.["Price Per Bag"] || 15);
 
-const washFoldBeddingPrice =
-  Number(
-    services?.step1?.washFold?.["Bedding Price"] || 25
-  );
+  const washFoldBeddingPrice =
+    Number(services?.step1?.washFold?.["Bedding Price"] || 25);
 
-const washFoldComforterPrice =
-  Number(
-    services?.step1?.washFold?.["Comforter Price"] || 18
-  );
+  const washFoldComforterPrice =
+    Number(services?.step1?.washFold?.["Comforter Price"] || 18);
 
-const washFoldSleepingBagPrice =
-  Number(
-    services?.step1?.washFold?.["Sleeping Bag Price"] || 15
-  );
+  const washFoldSleepingBagPrice =
+    Number(
+    services?.step1?.washFold?.["Sleeping Bag Price"] || 15);
 
 const washFoldRugPrice =
-  Number(
-    services?.step1?.washFold?.["Area Rug Price"] || 20
-  );
+  Number(services?.step1?.washFold?.["Area Rug Price"] || 20);
 
 const foldOnlyBeddingPrice =
-  Number(
-    services?.step1?.foldOnly?.Bedding || 12
-  );
+  Number(services?.step1?.foldOnly?.Bedding || 12);
 
 const foldOnlyComforterPrice =
-  Number(
-    services?.step1?.foldOnly?.Comforter || 9
-  );
+  Number(services?.step1?.foldOnly?.Comforter || 9);
 
 const foldOnlySleepingBagPrice =
-  Number(
-    services?.step1?.foldOnly?.["Sleeping Bag"] || 7
-  );
+  Number(services?.step1?.foldOnly?.["Sleeping Bag"] || 7);
 
 const foldOnlyRugPrice =
-  Number(
-    services?.step1?.foldOnly?.["Area Rug"] || 10
-  );
+  Number(services?.step1?.foldOnly?.["Area Rug"] || 10);
 
   const washFoldTotal =
   !washFold
@@ -257,6 +234,8 @@ console.log({
       washFoldType,
       washFoldBags,
       foldOnlyLbs,
+      foldOnlyType,
+      foldOnlyBags,
       washFoldBedding,
       foldOnlyBedding,
       washFoldComforter,
