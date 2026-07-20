@@ -3,13 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import ProgressBar from "../ProgressBar";
 import Step3Progress from "../Step3Progress";
+
 export default function BookingStep3Contact() {
 const navigate = useNavigate();
-const {
-  bookingData,
-  setBookingData,
-  clearBooking,
-} = useBooking();
+const { bookingData, setBookingData, clearBooking, } = useBooking();
 const [name, setName] = useState(bookingData.name || "");
 const [address, setAddress] = useState(bookingData.address || "");
 const [city, setCity] = useState(bookingData.city || "");
@@ -17,13 +14,13 @@ const [zip, setZip] = useState(bookingData.zip || "");
 const [unit, setUnit] = useState(bookingData.unit || "");
 const [phone, setPhone] = useState(bookingData.phone || "");
 const [email, setEmail] = useState(bookingData.email || "");
+const [differentDeliveryAddress, setDifferentDeliveryAddress] = useState(false);
+const [deliveryAddress, setDeliveryAddress] = useState("");
+const [deliveryCity, setDeliveryCity] = useState("");
+const [deliveryZip, setDeliveryZip] = useState("");
+const [deliveryUnit, setDeliveryUnit] = useState("");
 const [error, setError] = useState("");
-const allowedZips = [
-"92562","92563","92564",
-"92584","92585","92586","92587","92596",
-"92590","92591","92592","92593",
-"92543","92544","92545"
-];
+const allowedZips = ["92562","92563","92564","92584","92585","92586","92587","92596","92590","92591","92592","92593","92543","92544","92545"];
 
 function formatPhoneNumber(value) {
 const numbers = value.replace(/\D/g, "").slice(0, 10);
@@ -90,6 +87,13 @@ setBookingData({
   stateValue: "CA",
   zip,
   unit,
+
+  deliveryAddress,
+  deliveryCity,
+  deliveryZip,
+  deliveryUnit,
+  differentDeliveryAddress,
+
   phone,
   email
 });
@@ -161,7 +165,25 @@ return (
       <input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
       {!name && <p style={errorStyle}>Required</p>}
 
-      <input placeholder="Pickup / Drop-off Address" value={address} onChange={(e) => setAddress(e.target.value)} style={inputStyle} />
+<label
+  style={{
+    display: "block",
+    marginTop: "15px",
+    marginBottom: "10px"
+  }}
+>
+  <input
+    type="checkbox"
+    checked={differentDeliveryAddress}
+    onChange={(e) =>
+      setDifferentDeliveryAddress(e.target.checked)
+    }
+    style={{ marginRight: "8px" }}
+  />
+  Delivery address is different from pickup address
+</label>
+
+      <input placeholder="Pickup Address" value={address} onChange={(e) => setAddress(e.target.value)} style={inputStyle} />
       {!address && <p style={errorStyle}>Required</p>}
 
       <div style={rowStyle}>
@@ -187,6 +209,69 @@ return (
       )}
 
       <input placeholder="Apt / Unit / Gate Code (Optional)" value={unit} onChange={(e) => setUnit(e.target.value)} style={inputStyle} />
+
+{differentDeliveryAddress && (
+  <>
+    <h3 style={{ marginTop: "20px" }}>
+      Delivery Address
+    </h3>
+
+    <input
+      placeholder="Delivery Address"
+      value={deliveryAddress}
+      onChange={(e) =>
+        setDeliveryAddress(e.target.value)
+      }
+      style={inputStyle}
+    />
+
+    <div style={rowStyle}>
+      <input
+        placeholder="City"
+        value={deliveryCity}
+        onChange={(e) =>
+          setDeliveryCity(e.target.value)
+        }
+        style={cityInput}
+      />
+
+      <input
+        placeholder="ZIP"
+        value={deliveryZip}
+        onChange={(e) =>
+          setDeliveryZip(
+            formatZip(e.target.value)
+          )
+        }
+        style={zipInput}
+      />
+
+      {deliveryZip &&
+  !isValidZip(deliveryZip) && (
+    <p style={errorStyle}>
+      ZIP must be 5 digits
+    </p>
+)}
+
+{deliveryZip &&
+  isValidZip(deliveryZip) &&
+  !isServiceableZip(deliveryZip) && (
+    <p style={errorStyle}>
+      We do not service this area
+    </p>
+)}
+    </div>
+
+    <input
+      placeholder="Apt / Unit / Gate Code (Optional)"
+      value={deliveryUnit}
+      onChange={(e) =>
+        setDeliveryUnit(e.target.value)
+      }
+      style={inputStyle}
+    />
+  </>
+)}
 
       <input placeholder="Phone Number" value={phone} onChange={(e) => setPhone(formatPhoneNumber(e.target.value))} style={inputStyle} />
       {!phone && <p style={errorStyle}>Required</p>}

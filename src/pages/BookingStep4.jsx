@@ -283,10 +283,36 @@ console.log("Initial Date:", deliveryDate);
           <div style={sectionContentStyle("contact")}>
             <p>{bookingData.name}</p>
             <p>{bookingData.phone}</p>
-            <p>{bookingData.address}</p>
-            <p>{bookingData.cityStateZip}</p>
-            <p>{bookingData.unit || "No Unit / Gate Code Provided"}</p>
             <p>{bookingData.email}</p>
+            <p>
+  <strong>Pickup Address:</strong>
+</p>
+
+<p>{bookingData.address}</p>
+<p>{bookingData.cityStateZip}</p>
+<p>{bookingData.unit || "No Unit / Gate Code Provided"}</p>
+
+<br />
+
+<p>
+  <strong>Delivery Address:</strong>
+</p>
+
+{bookingData.differentDeliveryAddress ? (
+  <>
+    <p>{bookingData.deliveryAddress}</p>
+    <p>
+      {bookingData.deliveryCity}, CA{" "}
+      {bookingData.deliveryZip}
+    </p>
+    <p>
+      {bookingData.deliveryUnit ||
+        "No Unit / Gate Code Provided"}
+    </p>
+  </>
+) : (
+  <p>Same as Pickup Address</p>
+)}
           </div>
         </div>
 
