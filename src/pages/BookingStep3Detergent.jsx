@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import ProgressBar from "../ProgressBar";
 import Step3Progress from "../Step3Progress";
-import { db } from "../firebase";
+import { auth, db } from "../firebase";
 import { doc, getDoc } from "@firebase/firestore/lite";
 
 export default function BookingStep3Detergent() {
@@ -57,6 +57,48 @@ function clearForm() {
 
     loadServices();
   }, []);
+
+  useEffect(() => {
+  async function loadCustomerDetergent() {
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    const docRef = doc(db, "customers", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) return;
+
+    const customer = docSnap.data();
+
+    if (customer.preferredDetergent) {
+  const detergent = customer.preferredDetergent
+    .replace(" (+$3.00)", "")
+    .replace(" (-$1.50)", "");
+
+  setDetergentChoice(detergent);
+
+  if (
+    detergent === "All Free & Clear" ||
+    detergent === "Gain Original" ||
+    detergent === "Tide Original"
+  ) {
+    setDetergentType("original");
+  } else if (
+    detergent === "All Sensitive Fresh" ||
+    detergent === "Tide Free & Gentle"
+  ) {
+    setDetergentType("sensitive");
+  } else if (
+    detergent === "Customer Provided"
+  ) {
+    setDetergentType("customer");
+  }
+}
+  }
+
+  loadCustomerDetergent();
+}, []);
 
   let sensitivePrice = 0;
 

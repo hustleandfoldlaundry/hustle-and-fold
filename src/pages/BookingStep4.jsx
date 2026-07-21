@@ -301,7 +301,9 @@ console.log("Initial Date:", deliveryDate);
 </p>
 
 <p>{bookingData.address}</p>
-<p>{bookingData.cityStateZip}</p>
+<p>
+  {bookingData.city}, CA {bookingData.zip}
+</p>
 <p>{bookingData.unit || "No Unit / Gate Code Provided"}</p>
 
 <br />
