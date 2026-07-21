@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
-import { db, collection, addDoc } from "../firebase";
+import { auth, db, collection, addDoc } from "../firebase";
+import { doc, updateDoc } from "@firebase/firestore/lite";
 import ProgressBar from "../ProgressBar";
 
 export default function BookingStep4() {
@@ -156,11 +157,22 @@ console.log("Initial Date:", deliveryDate);
 
           <div style={sectionContentStyle("services")}>
             {bookingData.washFold && (
-              <p>{bookingData.washFoldLbs} lbs Wash & Fold</p>
-            )}
-            {bookingData.foldOnly && (
-              <p>{bookingData.foldOnlyLbs} lbs Fold Only</p>
-            )}
+  <p>
+    {bookingData.washFoldType === "bag"
+      ? `${bookingData.washFoldBags} Bag(s)`
+      : `${bookingData.washFoldLbs} lbs`}{" "}
+    Wash & Fold
+  </p>
+)}
+
+{bookingData.foldOnly && (
+  <p>
+    {bookingData.foldOnlyType === "bag"
+      ? `${bookingData.foldOnlyBags} Bag(s)`
+      : `${bookingData.foldOnlyLbs} lbs`}{" "}
+    Fold Only
+  </p>
+)}
             {bookingData.washFoldBedding > 0 && (
   <p>
     Wash & Fold Bedding Sets:
@@ -463,6 +475,29 @@ console.log("Initial Date:", deliveryDate);
               console.log("ORDER DATA:", orderData);
 
               await addDoc(collection(db, "orders"), orderData);
+
+              const user = auth.currentUser;
+
+if (user) {
+  await updateDoc(
+    doc(db, "customers", user.uid),
+    {
+      pickupAddress: bookingData.address || "",
+      pickupCity: bookingData.city || "",
+      pickupZip: bookingData.zip || "",
+      pickupUnit: bookingData.unit || "",
+
+      deliveryAddress:
+        bookingData.deliveryAddress || "",
+      deliveryCity:
+        bookingData.deliveryCity || "",
+      deliveryZip:
+        bookingData.deliveryZip || "",
+      deliveryUnit:
+        bookingData.deliveryUnit || ""
+    }
+  );
+}
 
               navigate("/booking/success", { state: { orderId } });
             }}

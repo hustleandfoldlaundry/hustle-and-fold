@@ -496,7 +496,7 @@ for (let day = 1; day <= daysInMonth; day++) {
 
         <div style={{ textAlign: "center", marginTop: "20px" }}>
   <button
-    onClick={() => navigate("/")}
+    onClick={() => navigate("/booking/step1")}
     style={{
       ...navButton,
       marginRight: "10px",

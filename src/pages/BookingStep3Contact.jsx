@@ -223,6 +223,18 @@ return (
   Delivery address is different from pickup address
 </label>
 
+<p
+  style={{
+    fontSize: "14px",
+    color: "#6b7280",
+    marginTop: "-5px",
+    marginBottom: "15px",
+    textAlign: "center"
+  }}
+>
+  If left unchecked, your laundry will be returned to the pickup address.
+</p>
+
       <input placeholder="Pickup Address" value={address} onChange={(e) => setAddress(e.target.value)} style={inputStyle} />
       {!address && <p style={errorStyle}>Required</p>}
 

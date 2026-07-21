@@ -534,6 +534,17 @@ onChange={(e) =>
   <strong>Delivery Address:</strong>
 </p>
 
+<p
+  style={{
+    fontSize: "14px",
+    color: "#6b7280",
+    marginTop: "-5px",
+    marginBottom: "15px"
+  }}
+>
+  Enter address only if there is a different delivery address.
+</p>
+
 <input
   placeholder="Street Address"
   value={deliveryAddress}

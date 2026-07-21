@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import ProgressBar from "../ProgressBar";
 import Step3Progress from "../Step3Progress";
+import { auth, db } from "../firebase";
+import { doc, getDoc } from "@firebase/firestore/lite";
 
 export default function BookingStep3Notes() {
   const navigate = useNavigate();
@@ -22,6 +24,27 @@ export default function BookingStep3Notes() {
     (bookingData.addonsTotal || 0) +
     (bookingData.hangingCareTotal || 0) +
     (bookingData.hangerTotal || 0);
+
+useEffect(() => {
+  async function loadCustomerNotes() {
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    const docRef = doc(db, "customers", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) return;
+
+    const customer = docSnap.data();
+
+    if (!bookingData.notes) {
+      setNotes(customer.specialInstructions || "");
+    }
+  }
+
+  loadCustomerNotes();
+}, []);
 
 function clearForm() {
   setNotes("");

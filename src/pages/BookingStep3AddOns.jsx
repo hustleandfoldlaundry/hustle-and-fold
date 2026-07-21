@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import ProgressBar from "../ProgressBar";
 import Step3Progress from "../Step3Progress";
-import { db } from "../firebase";
+import { auth, db } from "../firebase";
 import { doc, getDoc } from "@firebase/firestore/lite";
 
 export default function BookingStep3AddOns() {
@@ -64,6 +64,30 @@ function clearForm() {
 
     loadServices();
   }, []);
+
+  useEffect(() => {
+  async function loadCustomerPreferences() {
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    const docRef = doc(db, "customers", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) return;
+
+    const customer = docSnap.data();
+
+    setAddons({
+      oxi: customer.oxiClean || false,
+      color: customer.colorSaver || false,
+      vinegar: customer.vinegarRinse || false,
+      delicates: false
+    });
+  }
+
+  loadCustomerPreferences();
+}, []);
 
   function toggle(name) {
     setAddons((prev) => ({
