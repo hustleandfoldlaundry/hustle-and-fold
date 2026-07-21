@@ -16,6 +16,12 @@ export default function CustomerDashboard() {
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [pickupAddress, setPickupAddress] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [pickupCity, setPickupCity] = useState("");
+  const [pickupZip, setPickupZip] = useState("");
+  const [pickupUnit, setPickupUnit] = useState("");
+  const [deliveryCity, setDeliveryCity] = useState("");
+  const [deliveryZip, setDeliveryZip] = useState("");
+  const [deliveryUnit, setDeliveryUnit] = useState("");
   const [oxiClean, setOxiClean] = useState(false);
   const [colorSaver, setColorSaver] = useState(false);
   const [vinegarRinse, setVinegarRinse] = useState(false);
@@ -55,6 +61,16 @@ setVinegarRinse(data.vinegarRinse || false);
 setPickupAddress(data.pickupAddress || "");
 
 setDeliveryAddress(data.deliveryAddress || "");
+
+setPickupCity(data.pickupCity || "");
+setPickupZip(data.pickupZip || "");
+setPickupUnit(data.pickupUnit || "");
+
+setDeliveryCity(data.deliveryCity || "");
+setDeliveryZip(data.deliveryZip || "");
+setDeliveryUnit(data.deliveryUnit || "");
+
+if (customer.deliveryAddress) {setDifferentDeliveryAddress(true);}
 
 const ordersSnapshot = await getDocs(
   collection(db, "orders")
@@ -444,52 +460,163 @@ onChange={(e) =>
   {customer?.phone || "Loading..."}
 </p>
 
+<p>
+  <strong>Pickup Address:</strong>
+</p>
 
-<textarea
-value={pickupAddress}
-onChange={(e) =>
-  setPickupAddress(e.target.value)
-}
-  rows="3"
-  placeholder="Enter pickup address"
+<input
+  placeholder="Street Address"
+  value={pickupAddress}
+  onChange={(e) =>
+    setPickupAddress(e.target.value)
+  }
   style={{
-    width: "95%",
-    padding: "10px",
-    borderRadius: "8px",
-    resize: "vertical",
-    marginBottom: "15px"
+  width: "95%",
+  padding: "10px",
+  borderRadius: "8px",
+  marginBottom: "10px"
+}}
+
+/>
+
+<div
+  style={{
+    display: "flex",
+    gap: "10px",
+    marginBottom: "10px"
   }}
+>
+  <input
+    placeholder="City"
+    value={pickupCity}
+    onChange={(e) =>
+      setPickupCity(e.target.value)
+    }
+    style={{
+  flex: 1,
+  padding: "10px",
+  borderRadius: "8px"
+}}
+
+  />
+
+  <input
+    placeholder="ZIP"
+    value={pickupZip}
+    onChange={(e) =>
+      setPickupZip(e.target.value)
+    }
+    style={{
+  width: "100px",
+  padding: "10px",
+  borderRadius: "8px"
+}}
+
+  />
+</div>
+
+<input
+  placeholder="Apt / Unit / Gate Code"
+  value={pickupUnit}
+  onChange={(e) =>
+    setPickupUnit(e.target.value)
+  }
+  style={{
+  width: "95%",
+  padding: "10px",
+  borderRadius: "8px",
+  marginBottom: "10px"
+}}
+
 />
 
 <p>
   <strong>Delivery Address:</strong>
 </p>
 
-<textarea
-value={deliveryAddress}
-onChange={(e) =>
-  setDeliveryAddress(e.target.value)
-}
-  rows="3"
-  placeholder="Enter delivery address"
+<input
+  placeholder="Street Address"
+  value={deliveryAddress}
+  onChange={(e) =>
+    setDeliveryAddress(e.target.value)
+  }
   style={{
-    width: "95%",
-    padding: "10px",
-    borderRadius: "8px",
-    resize: "vertical"
+  width: "95%",
+  padding: "10px",
+  borderRadius: "8px",
+  marginBottom: "10px"
+}}
+
+/>
+
+<div
+  style={{
+    display: "flex",
+    gap: "10px",
+    marginBottom: "10px"
   }}
+>
+  <input
+    placeholder="City"
+    value={deliveryCity}
+    onChange={(e) =>
+      setDeliveryCity(e.target.value)
+    }
+    style={{
+  flex: 1,
+  padding: "10px",
+  borderRadius: "8px"
+}}
+
+  />
+
+  <input
+    placeholder="ZIP"
+    value={deliveryZip}
+    onChange={(e) =>
+      setDeliveryZip(e.target.value)
+    }
+    style={{
+  width: "100px",
+  padding: "10px",
+  borderRadius: "8px"
+}}
+
+  />
+</div>
+
+<input
+  placeholder="Apt / Unit / Gate Code"
+  value={deliveryUnit}
+  onChange={(e) =>
+    setDeliveryUnit(e.target.value)
+  }
+  style={{
+  width: "95%",
+  padding: "10px",
+  borderRadius: "8px",
+  marginBottom: "10px"
+}}
+
 />
 
 <button
   onClick={async () => {
     try {
       await updateDoc(
-        doc(db, "customers", user.uid),
-        {
-          pickupAddress,
-          deliveryAddress
-        }
-      );
+  doc(db, "customers", user.uid),
+  {
+    pickupAddress,
+    pickupCity,
+    pickupZip,
+    pickupUnit,
+
+    deliveryAddress,
+    deliveryCity,
+    deliveryZip,
+    deliveryUnit
+  }
+);
 
       alert("Addresses saved!");
     } catch (err) {

@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { auth, db } from "../firebase";
+import { doc, getDoc } from "@firebase/firestore/lite";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import ProgressBar from "../ProgressBar";
@@ -21,6 +23,44 @@ const [deliveryZip, setDeliveryZip] = useState("");
 const [deliveryUnit, setDeliveryUnit] = useState("");
 const [error, setError] = useState("");
 const allowedZips = ["92562","92563","92564","92584","92585","92586","92587","92596","92590","92591","92592","92593","92543","92544","92545"];
+
+useEffect(() => {
+  async function loadCustomerProfile() {
+    const user = auth.currentUser;
+console.log("Current User:", user);
+    if (!user) return;
+
+    const docRef = doc(db, "customers", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) return;
+
+    const customer = docSnap.data();
+
+    if (!bookingData.address) {
+      setName(
+        customer.firstName && customer.lastName
+          ? `${customer.firstName} ${customer.lastName}`
+          : ""
+      );
+
+      setPhone(customer.phone || "");
+      setEmail(customer.email || "");
+
+      setAddress(customer.pickupAddress || "");
+      setCity(customer.pickupCity || "");
+      setZip(customer.pickupZip || "");
+      setUnit(customer.pickupUnit || "");
+
+      setDeliveryAddress(customer.deliveryAddress || "");
+      setDeliveryCity(customer.deliveryCity || "");
+      setDeliveryZip(customer.deliveryZip || "");
+      setDeliveryUnit(customer.deliveryUnit || "");
+      if (customer.deliveryAddress) { setDifferentDeliveryAddress(true); } }
+  }
+
+  loadCustomerProfile();
+}, []);
 
 function formatPhoneNumber(value) {
 const numbers = value.replace(/\D/g, "").slice(0, 10);
