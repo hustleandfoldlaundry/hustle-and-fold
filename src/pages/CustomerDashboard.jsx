@@ -70,10 +70,15 @@ setDeliveryCity(data.deliveryCity || "");
 setDeliveryZip(data.deliveryZip || "");
 setDeliveryUnit(data.deliveryUnit || "");
 
-if (customer.deliveryAddress) {setDifferentDeliveryAddress(true);}
+if (customer?.deliveryAddress) {setDifferentDeliveryAddress(true);}
 
 const ordersSnapshot = await getDocs(
   collection(db, "orders")
+);
+
+console.log(
+  "ALL ORDERS:",
+  ordersSnapshot.docs.map((doc) => doc.data())
 );
 
 const customerOrders = ordersSnapshot.docs
@@ -242,8 +247,30 @@ setOrders(customerOrders);
       </p>
 
       <p>
-        <strong>Status:</strong> {order.status}
-      </p>
+  <strong>Status:</strong>{" "}
+  <span
+    style={{
+      padding: "4px 10px",
+      borderRadius: "999px",
+      backgroundColor:
+        order.status === "Completed"
+          ? "#16a34a"
+          : order.status === "Out For Delivery"
+          ? "#7c3aed"
+          : order.status === "In Processing"
+          ? "#2563eb"
+          : order.status === "Pickup Scheduled"
+          ? "#ea580c"
+          : order.status === "Accepted"
+          ? "#ca8a04"
+          : "#dc2626",
+      color: "white",
+      fontWeight: "bold"
+    }}
+  >
+    {order.status}
+  </span>
+</p>
 
       <p>
   <strong>Services:</strong>
