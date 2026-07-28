@@ -468,11 +468,16 @@ console.log("Initial Date:", deliveryDate);
 
               const orderId = "ORD-" + Date.now();
 
-              const orderData = {
-                ...bookingData,
-                orderId,
-                createdAt: new Date().toISOString()
-              };
+              const {
+  reorderData,
+  ...cleanBookingData
+} = bookingData;
+
+const orderData = {
+  ...cleanBookingData,
+  orderId,
+  createdAt: new Date().toISOString()
+};
 
               console.log("ORDER DATA:", orderData);
 

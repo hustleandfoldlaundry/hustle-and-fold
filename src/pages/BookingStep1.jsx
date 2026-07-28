@@ -32,17 +32,36 @@ export default function BookingStep1() {
   const [foldOnlyLbs, setFoldOnlyLbs] = useState(10);
   const [foldOnlyType, setFoldOnlyType] = useState(reorderData?.foldOnlyType || "pound");
   const [foldOnlyBags, setFoldOnlyBags] = useState(1);
-  const [washFoldBedding, setWashFoldBedding] = useState(0);
-  const [foldOnlyBedding, setFoldOnlyBedding] = useState(0);
-  const [washFoldComforter, setWashFoldComforter] = useState(0);
-  const [foldOnlyComforter, setFoldOnlyComforter] = useState(0);
-  const [washFoldSleepingBag, setWashFoldSleepingBag] = useState(0);
-  const [foldOnlySleepingBag, setFoldOnlySleepingBag] = useState(0);
-  const [washFoldRug, setWashFoldRug] = useState(0);
-  const [foldOnlyRug, setFoldOnlyRug] = useState(0);
-  const [otherCount, setOtherCount] = useState(0);
-  const [otherText, setOtherText] = useState("");
-  const [otherConfirmed, setOtherConfirmed] = useState(false);
+  const [washFoldBedding, setWashFoldBedding] = useState(
+  reorderData?.washFoldBedding || 0
+);
+
+const [foldOnlyBedding, setFoldOnlyBedding] = useState(
+  reorderData?.foldOnlyBedding || 0
+);
+  const [washFoldComforter, setWashFoldComforter] =
+  useState(reorderData?.washFoldComforter || 0);
+
+const [foldOnlyComforter, setFoldOnlyComforter] =
+  useState(reorderData?.foldOnlyComforter || 0);
+  const [washFoldSleepingBag, setWashFoldSleepingBag] =
+  useState(reorderData?.washFoldSleepingBag || 0);
+
+const [foldOnlySleepingBag, setFoldOnlySleepingBag] =
+  useState(reorderData?.foldOnlySleepingBag || 0);
+  const [washFoldRug, setWashFoldRug] =
+  useState(reorderData?.washFoldRug || 0);
+
+const [foldOnlyRug, setFoldOnlyRug] =
+  useState(reorderData?.foldOnlyRug || 0);
+  const [otherCount, setOtherCount] =
+  useState(reorderData?.otherCount || 0);
+
+const [otherText, setOtherText] =
+  useState(reorderData?.otherText || "");
+
+const [otherConfirmed, setOtherConfirmed] =
+  useState(reorderData?.otherConfirmed || false);
   const [showOtherInput, setShowOtherInput] = useState(false);
   const [error, setError] = useState("");
 
