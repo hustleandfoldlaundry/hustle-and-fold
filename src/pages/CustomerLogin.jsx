@@ -112,6 +112,20 @@ export default function CustomerLogin() {
         </button>
 
         <button
+  onClick={() => navigate("/forgot-password")}
+  style={{
+    marginTop: "10px",
+    background: "none",
+    border: "none",
+    color: "#2563eb",
+    cursor: "pointer",
+    textDecoration: "underline"
+  }}
+>
+  Forgot Password?
+</button>
+
+        <button
           onClick={() => navigate("/customer")}
           style={{
             marginTop: "15px",
