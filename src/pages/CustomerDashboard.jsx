@@ -11,6 +11,9 @@ export default function CustomerDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [customer, setCustomer] = useState(null);
+  const [phone, setPhone] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [orders, setOrders] = useState([]);
   const [currentOrder, setCurrentOrder] = useState(null);
   const [preferredDetergent, setPreferredDetergent] = useState("");
@@ -44,6 +47,11 @@ export default function CustomerDashboard() {
   const data = docSnap.data();
 
   setCustomer(data);
+
+  setFirstName(data.firstName || "");
+  setLastName(data.lastName || "");
+
+  setPhone(data.phone || "");
 
   setPreferredDetergent(
     data.preferredDetergent || ""
@@ -516,11 +524,34 @@ onChange={(e) =>
             </h2>
 
             <p>
-  <strong>Name:</strong>{" "}
-  {customer
-    ? `${customer.firstName} ${customer.lastName}`
-    : "Loading..."}
+  <strong>First Name:</strong>
 </p>
+
+<input
+  value={firstName}
+  onChange={(e) => setFirstName(e.target.value)}
+  style={{
+    width: "95%",
+    padding: "10px",
+    borderRadius: "8px",
+    marginBottom: "10px"
+  }}
+/>
+
+<p>
+  <strong>Last Name:</strong>
+</p>
+
+<input
+  value={lastName}
+  onChange={(e) => setLastName(e.target.value)}
+  style={{
+    width: "95%",
+    padding: "10px",
+    borderRadius: "8px",
+    marginBottom: "15px"
+  }}
+/>
 
 <p>
   <strong>Email:</strong>{" "}
@@ -528,9 +559,56 @@ onChange={(e) =>
 </p>
 
 <p>
-  <strong>Phone:</strong>{" "}
-  {customer?.phone || "Loading..."}
+  <strong>Phone:</strong>
 </p>
+
+<input
+  value={phone}
+  onChange={(e) => setPhone(e.target.value)}
+  style={{
+    width: "95%",
+    padding: "10px",
+    borderRadius: "8px",
+    marginBottom: "15px"
+  }}
+/>
+
+<button
+  onClick={async () => {
+    try {
+      await updateDoc(
+        doc(db, "customers", user.uid),
+        {
+          firstName,
+          lastName,
+          phone
+        }
+      );
+
+      alert("Profile updated!");
+
+      setCustomer({
+        ...customer,
+        firstName,
+        lastName,
+        phone
+      });
+    } catch (err) {
+      alert(err.message);
+    }
+  }}
+  style={{
+    padding: "10px 20px",
+    backgroundColor: "#1e3a8a",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    marginBottom: "15px"
+  }}
+>
+  Save Profile
+</button>
 
 <p>
   <strong>Pickup Address:</strong>
