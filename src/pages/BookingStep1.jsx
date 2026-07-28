@@ -246,7 +246,8 @@ console.log({
       foldOnlyRug,
       otherCount,
       otherText,
-      otherConfirmed
+      otherConfirmed,
+      reorderData
     });
 
     navigate("/booking/step2");

@@ -8,12 +8,8 @@ import { doc, getDoc } from "@firebase/firestore/lite";
 
 export default function BookingStep3Detergent() {
   const navigate = useNavigate();
-  const {
-  bookingData,
-  setBookingData,
-  clearBooking,
-} = useBooking();
-
+  const { bookingData,setBookingData,clearBooking,} = useBooking();
+  const reorderData = bookingData.reorderData;
   const [services, setServices] = useState({});
 
   const [detergentType, setDetergentType] = useState(
@@ -71,6 +67,17 @@ function clearForm() {
 
     const customer = docSnap.data();
 
+    if (reorderData?.detergentChoice) {
+  setDetergentChoice(
+    reorderData.detergentChoice
+  );
+
+  setDetergentType(
+    reorderData.detergentType
+  );
+
+  return;
+}
     if (customer.preferredDetergent) {
   const detergent = customer.preferredDetergent
     .replace(" (+$3.00)", "")

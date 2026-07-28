@@ -14,15 +14,19 @@ import {
 
 export default function BookingStep2() {
   const navigate = useNavigate();
-  const {
-  bookingData,
-  setBookingData,
-  clearBooking,
-} = useBooking();
+  const {bookingData,setBookingData,clearBooking,} = useBooking();
+  const reorderData = bookingData.reorderData;
+  const [selectedDate, setSelectedDate] = useState(
+  bookingData.pickupDate || ""
+);
 
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTime, setSelectedTime] = useState("");
-  const [deliverySpeed, setDeliverySpeed] = useState("");
+const [selectedTime, setSelectedTime] = useState(
+  bookingData.pickupTime || ""
+);
+
+const [deliverySpeed, setDeliverySpeed] = useState(
+  bookingData.deliverySpeed || ""
+);
   const [error, setError] = useState("");
   const [schedule, setSchedule] = useState({});
   const [orders, setOrders] = useState([]);
