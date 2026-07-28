@@ -12,6 +12,7 @@ export default function CustomerDashboard() {
   const [user, setUser] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [orders, setOrders] = useState([]);
+  const [currentOrder, setCurrentOrder] = useState(null);
   const [preferredDetergent, setPreferredDetergent] = useState("");
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [pickupAddress, setPickupAddress] = useState("");
@@ -94,6 +95,14 @@ const customerOrders = ordersSnapshot.docs
 
 setOrders(customerOrders);
 
+const activeOrder = customerOrders.find(
+  (order) =>
+    order.status !== "Order Complete" &&
+    order.status !== "Cancelled"
+);
+
+setCurrentOrder(activeOrder || null);
+
 }}
 
   loadCustomer();
@@ -141,6 +150,42 @@ setOrders(customerOrders);
           <p>
   Welcome back, {customer?.firstName || "Customer"}!
 </p>
+
+{currentOrder && (
+  <div
+    style={{
+      backgroundColor: "white",
+      padding: "25px",
+      borderRadius: "20px",
+      boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+      marginBottom: "25px"
+    }}
+  >
+    <h2 style={{ color: "#1e3a8a" }}>
+      Current Order Status
+    </h2>
+
+    <p>
+      <strong>Order #:</strong>{" "}
+      {currentOrder.orderId}
+    </p>
+
+    <p>
+      <strong>Pickup Date:</strong>{" "}
+      {currentOrder.pickupDate}
+    </p>
+
+    <p>
+      <strong>Status:</strong>{" "}
+      {currentOrder.status}
+    </p>
+
+    <p>
+      <strong>Total:</strong> $
+      {currentOrder.grandTotal}
+    </p>
+  </div>
+)}
 
 <div
           style={{
