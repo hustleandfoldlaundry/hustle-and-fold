@@ -18,6 +18,7 @@ import CustomerLogin from "./pages/CustomerLogin";
 import CreateAccount from "./pages/CreateAccount";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import ForgotPassword from "./pages/ForgotPassword";
+import OrderDetails from "./pages/OrderDetails";
 
 
 export default function App() {
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/create-account" element={<CreateAccount />} />
         <Route path="/customer-dashboard" element={<CustomerDashboard />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/order-details" element={<OrderDetails />} />
       </Routes>
     </BrowserRouter>
   );

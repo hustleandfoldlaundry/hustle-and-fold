@@ -11,6 +11,7 @@ if (!isLoggedIn) {
   return <Navigate to="/admin" replace />;
 }
   const [orders, setOrders] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("Orders");
@@ -43,6 +44,20 @@ if (!isLoggedIn) {
       });
 
       setOrders(data.reverse());
+      setOrders(data);
+
+const customerSnapshot = await getDocs(
+  collection(db, "customers")
+);
+
+const customerData = customerSnapshot.docs.map(
+  (doc) => ({
+    id: doc.id,
+    ...doc.data()
+  })
+);
+
+setCustomers(customerData);
     } catch (err) {
       console.error("Error loading orders:", err);
     }
@@ -505,6 +520,61 @@ if (!isLoggedIn) {
           ))}
         </div>
 
+          {activeTab === "Customers" && (
+  <div style={{ marginTop: "20px" }}>
+    <h2>Customers</h2>
+
+    {customers.length === 0 ? (
+  <p>No customers found.</p>
+) : (
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(2, 1fr)",
+      gap: "20px"
+    }}
+  >
+    {customers.map((customer) => (
+      <div
+        key={customer.id}
+        style={{
+          backgroundColor: "white",
+          padding: "20px",
+          borderRadius: "12px",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
+        }}
+      >
+        <h3>
+          {customer.firstName} {customer.lastName}
+        </h3>
+
+        <p>
+          <strong>Email:</strong> {customer.email}
+        </p>
+
+        <p>
+          <strong>Phone:</strong> {customer.phone}
+        </p>
+
+        <p>
+  <strong>Orders:</strong>{" "}
+  {
+    orders.filter(
+      (order) =>
+        order.email?.toLowerCase() ===
+        customer.email?.toLowerCase()
+    ).length
+  }
+</p>
+
+      </div>
+    ))}
+  </div>
+)}
+</div>)}
+
+{activeTab === "Orders" && (
+
         <div style={{ marginTop: "20px" }}>
           {filteredOrders.length === 0 ? (
             <div style={statCard}>No matching orders found</div>
@@ -728,6 +798,7 @@ if (!isLoggedIn) {
             })
           )}
         </div>
+)}
       </div>
     </div>
   );

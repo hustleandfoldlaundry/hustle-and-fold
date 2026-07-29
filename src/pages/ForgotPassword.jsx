@@ -60,7 +60,7 @@ export default function ForgotPassword() {
               );
 
               alert(
-                "Password reset email sent!"
+                "Password reset email sent! Check your spam folder if you can't find the email."
               );
 
               navigate("/customer-login");

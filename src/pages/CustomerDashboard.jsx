@@ -16,6 +16,12 @@ export default function CustomerDashboard() {
   const [lastName, setLastName] = useState("");
   const [orders, setOrders] = useState([]);
   const [currentOrder, setCurrentOrder] = useState(null);
+  const [customerStats, setCustomerStats] = useState({
+  totalOrders: 0,
+  activeOrders: 0,
+  completedOrders: 0,
+  totalSpent: 0
+});
   const [preferredDetergent, setPreferredDetergent] = useState("");
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [pickupAddress, setPickupAddress] = useState("");
@@ -179,6 +185,15 @@ setCurrentOrder(activeOrder || null);
     </p>
 
     <p>
+  <strong>Placed:</strong>{" "}
+  {currentOrder.createdAt
+    ? new Date(
+        currentOrder.createdAt
+      ).toLocaleDateString()
+    : "Unknown"}
+</p>
+
+    <p>
       <strong>Pickup Date:</strong>{" "}
       {currentOrder.pickupDate}
     </p>
@@ -337,6 +352,26 @@ setCurrentOrder(activeOrder || null);
       <p>
   <strong>Total:</strong> ${order.grandTotal}
 </p>
+
+<button
+  onClick={() =>
+    navigate("/order-details", {
+      state: { order }
+    })
+  }
+  style={{
+    marginTop: "10px",
+    marginRight: "10px",
+    padding: "8px 16px",
+    backgroundColor: "#2563eb",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer"
+  }}
+>
+  View Details
+</button>
 
 <button
   onClick={() =>
