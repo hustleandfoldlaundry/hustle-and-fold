@@ -12,6 +12,7 @@ if (!isLoggedIn) {
 }
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("Orders");
@@ -524,6 +525,195 @@ setCustomers(customerData);
   <div style={{ marginTop: "20px" }}>
     <h2>Customers</h2>
 
+{selectedCustomer && (
+  <div
+    style={{
+      backgroundColor: "#eff6ff",
+      padding: "20px",
+      borderRadius: "12px",
+      marginBottom: "20px"
+    }}
+  >
+    <h2>
+      {selectedCustomer.firstName}{" "}
+      {selectedCustomer.lastName}
+    </h2>
+
+    <p>
+      <strong>Email:</strong>{" "}
+      {selectedCustomer.email}
+    </p>
+
+    <p>
+      <strong>Phone:</strong>{" "}
+      {selectedCustomer.phone}
+    </p>
+
+    <p>
+      <strong>Preferred Detergent:</strong>{" "}
+      {selectedCustomer.preferredDetergent ||
+        "None"}
+    </p>
+
+    <p>
+      <strong>Special Instructions:</strong>{" "}
+      {selectedCustomer.specialInstructions ||
+        "None"}
+    </p>
+
+    <hr />
+
+<h3>Pickup Address</h3>
+
+<p>
+  {selectedCustomer.pickupAddress ||
+    "No pickup address saved"}
+</p>
+
+<p>
+  {selectedCustomer.pickupCity}, CA{" "}
+  {selectedCustomer.pickupZip}
+</p>
+
+<p>
+  {selectedCustomer.pickupUnit ||
+    "No Unit / Gate Code"}
+</p>
+
+<hr />
+
+<h3>Delivery Address</h3>
+
+{selectedCustomer.deliveryAddress ? (
+  <>
+    <p>{selectedCustomer.deliveryAddress}</p>
+
+    <p>
+      {selectedCustomer.deliveryCity}, CA{" "}
+      {selectedCustomer.deliveryZip}
+    </p>
+
+    <p>
+      {selectedCustomer.deliveryUnit ||
+        "No Unit / Gate Code"}
+    </p>
+  </>
+) : (
+  <p>Same as Pickup Address</p>
+)}
+
+<hr />
+
+<h3>Customer Metrics</h3>
+
+<p>
+  <strong>Total Orders:</strong>{" "}
+  {
+    orders.filter(
+      (order) =>
+        order.email?.toLowerCase() ===
+        selectedCustomer.email?.toLowerCase()
+    ).length
+  }
+</p>
+
+<p>
+  <strong>Active Orders:</strong>{" "}
+  {
+    orders.filter(
+      (order) =>
+        order.email?.toLowerCase() ===
+          selectedCustomer.email?.toLowerCase() &&
+        order.status !== "Order Complete" &&
+        order.status !== "Cancelled"
+    ).length
+  }
+</p>
+
+<p>
+  <strong>Lifetime Spend:</strong> $
+  {orders
+    .filter(
+      (order) =>
+        order.email?.toLowerCase() ===
+        selectedCustomer.email?.toLowerCase()
+    )
+    .reduce(
+      (sum, order) =>
+        sum + Number(order.grandTotal || 0),
+      0
+    )
+    .toFixed(2)}
+</p>
+
+<hr />
+
+<h3>Recent Orders</h3>
+
+{orders
+  .filter(
+    (order) =>
+      order.email?.toLowerCase() ===
+      selectedCustomer.email?.toLowerCase()
+  )
+  .slice(0, 5)
+  .map((order) => (
+    <div
+      key={order.id}
+      style={{
+        backgroundColor: "#f8fafc",
+        padding: "12px",
+        borderRadius: "8px",
+        marginBottom: "10px"
+      }}
+    >
+      <button
+  onClick={() => {
+    setActiveTab("Orders");
+
+    const orderElement =
+      document.getElementById(
+        `order-${order.id}`
+      );
+
+    if (orderElement) {
+      orderElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }
+  }}
+  style={{
+    background: "none",
+    border: "none",
+    color: "#2563eb",
+    cursor: "pointer",
+    fontWeight: "bold",
+    padding: 0
+  }}
+>
+  {order.orderId}
+</button>
+
+
+      <p>
+        Status: {order.status}
+      </p>
+
+      <p>
+        Total: $
+        {Number(order.grandTotal || 0).toFixed(2)}
+      </p>
+
+      <p>
+        Pickup: {order.pickupDate || "Not Set"}
+      </p>
+    </div>
+  ))}
+
+  </div>
+)}
+
     {customers.length === 0 ? (
   <p>No customers found.</p>
 ) : (
@@ -567,6 +757,52 @@ setCustomers(customerData);
   }
 </p>
 
+<p>
+  <strong>Active Orders:</strong>{" "}
+  {
+    orders.filter(
+      (order) =>
+        order.email?.toLowerCase() ===
+          customer.email?.toLowerCase() &&
+        order.status !== "Order Complete" &&
+        order.status !== "Cancelled"
+    ).length
+  }
+</p>
+
+<p>
+  <strong>Lifetime Spend:</strong> $
+  {orders
+    .filter(
+      (order) =>
+        order.email?.toLowerCase() ===
+        customer.email?.toLowerCase()
+    )
+    .reduce(
+      (sum, order) =>
+        sum + Number(order.grandTotal || 0),
+      0
+    )
+    .toFixed(2)}
+</p>
+
+<button
+  onClick={() =>
+    setSelectedCustomer(customer)
+  }
+  style={{
+    marginTop: "10px",
+    padding: "10px 16px",
+    backgroundColor: "#2563eb",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer"
+  }}
+>
+  View Profile
+</button>
+
       </div>
     ))}
   </div>
@@ -585,8 +821,9 @@ setCustomers(customerData);
 
               return (
                 <div
-                  key={order.id}
-                  style={{
+  id={`order-${order.id}`}
+  key={order.id}
+  style={{
                     ...orderCard,
                     backgroundColor: getColor(order.tagColor)
                   }}
