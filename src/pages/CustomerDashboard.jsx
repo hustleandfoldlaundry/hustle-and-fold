@@ -1,27 +1,23 @@
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/HF Logo.png";
-import { auth } from "../firebase";
+import { auth, db, storage } from "../firebase";
 import { useEffect, useState } from "react";
 import { doc, getDoc, updateDoc, collection, getDocs } from "@firebase/firestore/lite";
-import { db } from "../firebase";
 import { signOut } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function CustomerDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [customer, setCustomer] = useState(null);
+  const [profilePhoto, setProfilePhoto] = useState("");
   const [phone, setPhone] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [orders, setOrders] = useState([]);
   const [currentOrder, setCurrentOrder] = useState(null);
-  const [customerStats, setCustomerStats] = useState({
-  totalOrders: 0,
-  activeOrders: 0,
-  completedOrders: 0,
-  totalSpent: 0
-});
+  const [customerStats, setCustomerStats] = useState({ totalOrders: 0, activeOrders: 0, completedOrders: 0, totalSpent: 0 });
   const [preferredDetergent, setPreferredDetergent] = useState("");
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [pickupAddress, setPickupAddress] = useState("");
@@ -53,6 +49,8 @@ export default function CustomerDashboard() {
   const data = docSnap.data();
 
   setCustomer(data);
+
+  setProfilePhoto(data.profilePhoto || "");
 
   setFirstName(data.firstName || "");
   setLastName(data.lastName || "");
@@ -149,13 +147,71 @@ setCurrentOrder(activeOrder || null);
         
           >
             <img
-      src={logo}
+      src={profilePhoto || logo}
       alt="Hustle & Fold Logo"
       style={{
         width: "400px",
         marginBottom: "10px"
       }}
       />
+
+<div style={{ textAlign: "center" }}>
+  <button
+  onClick={() =>
+  document
+    .getElementById("profile-photo-input")
+    .click()
+}
+    style={{
+      marginTop: "10px",
+      padding: "8px 16px",
+      backgroundColor: "#1e3a8a",
+      color: "white",
+      border: "none",
+      borderRadius: "8px",
+      cursor: "pointer"
+    }}
+  >
+    Change Profile Photo
+  </button>
+</div>
+
+<input
+  id="profile-photo-input"
+  type="file"
+  accept="image/*"
+  onChange={async (e) => {
+    const file = e.target.files[0];
+
+if (!file || !user) return;
+
+try {
+  const storageRef = ref(
+    storage,
+    `profilePhotos/${user.uid}`
+  );
+
+  await uploadBytes(storageRef, file);
+
+  const downloadURL =
+    await getDownloadURL(storageRef);
+
+  await updateDoc(
+    doc(db, "customers", user.uid),
+    {
+      profilePhoto: downloadURL
+    }
+  );
+
+  setProfilePhoto(downloadURL);
+
+  alert("Profile photo updated!");
+} catch (error) {
+  alert(error.message);
+}
+  }}
+  style={{ display: "none" }}
+/>
 
           <h1 style={{ color: "#1e3a8a" }}>
             Customer Dashboard
