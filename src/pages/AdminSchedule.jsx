@@ -182,9 +182,6 @@ export default function AdminSchedule() {
     <div style={pageStyle}>
       <div style={containerStyle}>
 
-        {/* ✅ REUSABLE NAV */}
-        <AdminNav activeTab={activeTab} setActiveTab={setActiveTab} />
-
         <h2 style={{ marginTop: "20px", color: "#1e3a8a" }}>
           Admin Schedule
         </h2>

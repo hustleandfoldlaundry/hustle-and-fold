@@ -3,6 +3,8 @@ import { db } from "../firebase";
 import { collection, getDocs, doc, updateDoc} from "@firebase/firestore/lite";
 import { useNavigate } from "react-router-dom";
 import { Navigate } from "react-router-dom";
+import AdminSchedule from "./AdminSchedule";
+import AdminServices from "./AdminServices";
 
 export default function AdminDashboard() {
   const isLoggedIn = localStorage.getItem("adminLoggedIn");
@@ -384,15 +386,9 @@ setCustomers(customerData);
               key={label}
               style={topButton(label)}
               onClick={() => {
-                if (label === "Schedule") {
-                  navigate("/admin/schedule");
-                } else if (label === "Services") {
-                  navigate("/admin/services");
-                } else {
-                  setActiveTab(label);
-                }
-              }}
-            >
+  setActiveTab(label);
+}}
+>
               {label}
             </button>
           ))}
@@ -520,6 +516,14 @@ setCustomers(customerData);
             </button>
           ))}
         </div>
+
+{activeTab === "Schedule" && (
+  <AdminSchedule />
+)}
+
+{activeTab === "Services" && (
+  <AdminServices />
+)}
 
           {activeTab === "Customers" && (
   <div style={{ marginTop: "20px" }}>

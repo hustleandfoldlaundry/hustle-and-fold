@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { doc, getDoc, setDoc } from "@firebase/firestore/lite";
-import AdminNav from "../components/AdminNav";
+
 
 export default function AdminServices() {
   const [services, setServices] = useState({});
@@ -156,11 +156,6 @@ await setDoc(
   return (
     <div style={pageStyle}>
       <div style={containerStyle}>
-
-        <AdminNav
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
 
         <h2>
           Step 1 Services Configuration
