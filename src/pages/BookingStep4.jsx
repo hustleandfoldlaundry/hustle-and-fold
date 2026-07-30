@@ -21,6 +21,11 @@ export default function BookingStep4() {
     location.state?.termsAccepted || false
   );
 
+  console.log(location.state);
+
+const termsReviewed =
+  location.state?.termsAccepted || false;
+
   const toggleSection = (name) => {
     setOpenSection(openSection === name ? null : name);
   };
@@ -423,10 +428,11 @@ console.log("Initial Date:", deliveryDate);
         <div ref={termsRef} style={{ marginTop: "15px", textAlign: "left" }}>
           <label>
             <input
-              type="checkbox"
-              checked={agreed}
-              onChange={() => setAgreed(!agreed)}
-            />{" "}
+  type="checkbox"
+  disabled={!termsReviewed}
+  checked={agreed}
+  onChange={() => setAgreed(!agreed)}
+/>{" "}
             I agree to the{" "}
             <Link
               to="/terms"

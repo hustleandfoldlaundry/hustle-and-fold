@@ -242,7 +242,9 @@ export default function Terms() {
           <button
             disabled={!agreed}
             onClick={() =>
-  navigate(-1, { state: { termsAccepted: true } })
+  navigate("/booking/step4", {
+    state: { termsAccepted: true }
+  })
 }
             style={{
               padding: "12px 25px",
