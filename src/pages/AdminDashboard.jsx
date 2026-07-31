@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { db } from "../firebase";
-import { collection, getDocs, doc, updateDoc} from "@firebase/firestore/lite";
-import { useNavigate } from "react-router-dom";
+import { collection, getDocs, doc, updateDoc, setDoc, getDoc } from "@firebase/firestore/lite";import { useNavigate } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import AdminSchedule from "./AdminSchedule";
 import AdminServices from "./AdminServices";
@@ -20,7 +19,23 @@ if (!isLoggedIn) {
   const [activeTab, setActiveTab] = useState("Orders");
   const [savingId, setSavingId] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+
+  const [businessName, setBusinessName] = useState("Hustle & Fold");
+  const [adminName, setAdminName] = useState("CeCe");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPhone, setAdminPhone] = useState("");
+
+  const [businessAddress, setBusinessAddress] = useState("");
+  const [serviceRadius, setServiceRadius] = useState("15");
+  const [pickupHours, setPickupHours] = useState("");
+  const [deliveryHours, setDeliveryHours] = useState("");
+  
+  const [newOrderNotifications, setNewOrderNotifications] = useState(true);
+  const [customerMessageNotifications, setCustomerMessageNotifications] = useState(true);
+  const [pickupReminderNotifications, setPickupReminderNotifications] = useState(true);
+
   const navigate = useNavigate();
+  
 
   async function loadOrders() {
     try {
@@ -69,6 +84,46 @@ setCustomers(customerData);
   useEffect(() => {
     loadOrders();
   }, []);
+
+  useEffect(() => {
+  const loadSettings = async () => {
+    try {
+      const settingsDoc = await getDoc(
+        doc(db, "settings", "business")
+      );
+
+      if (settingsDoc.exists()) {
+        const data = settingsDoc.data();
+
+        setBusinessName(data.businessName || "");
+        setAdminName(data.adminName || "");
+        setAdminEmail(data.adminEmail || "");
+        setAdminPhone(data.adminPhone || "");
+        setBusinessAddress(data.businessAddress || "");
+        setServiceRadius(data.serviceRadius || "");
+        setPickupHours(data.pickupHours || "");
+        setDeliveryHours(data.deliveryHours || "");
+      }
+
+      setNewOrderNotifications(
+  data.newOrderNotifications ?? true
+);
+
+setCustomerMessageNotifications(
+  data.customerMessageNotifications ?? true
+);
+
+setPickupReminderNotifications(
+  data.pickupReminderNotifications ?? true
+);
+
+    } catch (error) {
+      console.error("Error loading settings:", error);
+    }
+  };
+
+  loadSettings();
+}, []);
 
   function computeFinalCost(order, weightValue) {
     const finalWeight = Number(weightValue || 0);
@@ -367,6 +422,29 @@ setCustomers(customerData);
     cursor: "pointer"
   };
 
+const saveSettings = async () => {
+  try {
+    await setDoc(doc(db, "settings", "business"), {
+  businessName,
+  adminName,
+  adminEmail,
+  adminPhone,
+  businessAddress,
+  serviceRadius,
+  pickupHours,
+  deliveryHours,
+  newOrderNotifications,
+  customerMessageNotifications,
+  pickupReminderNotifications
+});
+
+    alert("Settings saved successfully!");
+  } catch (error) {
+    console.error("Error saving settings:", error);
+    alert("Failed to save settings.");
+  }
+};
+
   return (
     <div style={pageStyle}>
       <div style={containerStyle}>
@@ -523,6 +601,210 @@ setCustomers(customerData);
 
 {activeTab === "Services" && (
   <AdminServices />
+)}
+
+{activeTab === "Settings" && (
+  <div style={{ marginTop: "20px" }}>
+    <h2>Admin Settings</h2>
+
+  <div
+    style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "30px",
+        alignItems: "start"
+    }}
+  >
+    {/* LEFT COLUMN */}
+
+    <div>
+
+<h3>Business Information</h3>
+
+    <div style={{ marginBottom: "12px" }}>
+      
+      <label>Business Name</label>
+      <input
+  type="text"
+  value={businessName}
+  onChange={(e) => setBusinessName(e.target.value)}
+  style={inputStyle}
+/>
+    </div>
+
+    <div style={{ marginBottom: "12px" }}>
+      
+      <label>Admin Name</label>
+      <input
+  type="text"
+  value={adminName}
+  onChange={(e) => setAdminName(e.target.value)}
+  style={inputStyle}
+/>
+    </div>
+
+    <div style={{ marginBottom: "12px" }}>
+      
+      <label>Admin Email</label>
+      <input
+  type="email"
+  value={adminEmail}
+  onChange={(e) => setAdminEmail(e.target.value)}
+  style={inputStyle}
+/>
+    </div>
+
+    <div style={{ marginBottom: "12px" }}>
+  
+      <label>Admin Phone</label>
+      <input
+  type="text"
+  value={adminPhone}
+  onChange={(e) => setAdminPhone(e.target.value)}
+  style={inputStyle}
+/>
+    </div>
+
+<div style={{ marginBottom: "12px" }}>
+  
+      <label>Business Address</label>
+      <input
+  type="text"
+  value={businessAddress}
+  onChange={(e) => setBusinessAddress(e.target.value)}
+  style={inputStyle}
+/>
+    </div>
+
+<div style={{ marginBottom: "12px" }}>
+  
+      <label>Service Radius</label>
+      <input
+  type="text"
+  value={serviceRadius}
+  onChange={(e) => setServiceRadius(e.target.value)}
+  style={inputStyle}
+/>
+    </div>
+
+    <div style={{ marginBottom: "12px" }}>
+  
+      <label>Pickup Hours</label>
+      <input
+  type="text"
+  value={pickupHours}
+  onChange={(e) => setPickupHours(e.target.value)}
+  style={inputStyle}
+/>
+    </div>
+
+    <div style={{ marginBottom: "12px" }}>
+  
+      <label>Delivery Hours</label>
+      <input
+  type="text"
+  value={deliveryHours}
+  onChange={(e) => setDeliveryHours(e.target.value)}
+  style={inputStyle}
+/>
+    </div>
+</div>
+
+{/* RIGHT COLUMN */}
+<div>
+<h3>Notification Preferences</h3>
+
+{/* Notification Checkboxes */}
+
+<div style={{ marginBottom: "10px" }}>
+  <label>
+    <input
+      type="checkbox"
+      checked={newOrderNotifications}
+      onChange={(e) =>
+        setNewOrderNotifications(e.target.checked)
+      }
+    />
+    {" "}New Order Notifications
+  </label>
+</div>
+
+<div style={{ marginBottom: "10px" }}>
+  <label>
+    <input
+      type="checkbox"
+      checked={customerMessageNotifications}
+      onChange={(e) =>
+        setCustomerMessageNotifications(e.target.checked)
+      }
+    />
+    {" "}Customer Message Notifications
+  </label>
+</div>
+
+<div style={{ marginBottom: "20px" }}>
+  <label>
+    <input
+      type="checkbox"
+      checked={pickupReminderNotifications}
+      onChange={(e) =>
+        setPickupReminderNotifications(e.target.checked)
+      }
+    />
+    {" "}Pickup Reminder Notifications
+  </label>
+
+  <div style={{ marginTop: "30px" }}>
+    <h3>Branding</h3>
+
+    <div style={{ marginBottom: "12px" }}>
+      <label>Business Tagline</label>
+      <input
+        type="text"
+        placeholder="Hustle hard. Fold with care."
+        style={inputStyle}
+      />
+    </div>
+
+    <div style={{ marginBottom: "12px" }}>
+      <label>Primary Brand Color</label>
+      <input
+        type="color"
+      />
+    </div>
+
+    <div style={{ marginBottom: "12px" }}>
+      <label>Secondary Brand Color</label>
+      <input
+        type="color"
+      />
+    </div>
+
+    <div style={{ marginBottom: "12px" }}>
+      <label>Business Logo</label>
+      <input
+        type="file"
+        accept="image/*"
+      />
+    </div>
+  </div>
+</div>
+
+</div>
+
+{/* END GRID */}
+</div> 
+
+<div style={{ marginTop: "30px" }}>
+  <button
+    onClick={saveSettings}
+    style={saveButton}
+  >
+    Save Settings
+  </button>
+</div>
+
+</div>
 )}
 
           {activeTab === "Customers" && (
