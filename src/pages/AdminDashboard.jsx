@@ -29,6 +29,11 @@ if (!isLoggedIn) {
   const [serviceRadius, setServiceRadius] = useState("15");
   const [pickupHours, setPickupHours] = useState("");
   const [deliveryHours, setDeliveryHours] = useState("");
+
+  const [businessTagline, setBusinessTagline] = useState( "Hustle hard. Fold with care." );
+
+  const [primaryColor, setPrimaryColor] = useState("#2563eb");
+  const [secondaryColor, setSecondaryColor] = useState("#1e3a8a");
   
   const [newOrderNotifications, setNewOrderNotifications] = useState(true);
   const [customerMessageNotifications, setCustomerMessageNotifications] = useState(true);
@@ -103,6 +108,9 @@ setCustomers(customerData);
         setServiceRadius(data.serviceRadius || "");
         setPickupHours(data.pickupHours || "");
         setDeliveryHours(data.deliveryHours || "");
+        setBusinessTagline( data.businessTagline || "Hustle hard. Fold with care." );
+        setPrimaryColor( data.primaryColor || "#2563eb" );
+        setSecondaryColor( data.secondaryColor || "#1e3a8a" );
       }
 
       setNewOrderNotifications(
@@ -435,7 +443,10 @@ const saveSettings = async () => {
   deliveryHours,
   newOrderNotifications,
   customerMessageNotifications,
-  pickupReminderNotifications
+  pickupReminderNotifications,
+  businessTagline,
+  primaryColor,
+  secondaryColor
 });
 
     alert("Settings saved successfully!");
@@ -758,27 +769,32 @@ const saveSettings = async () => {
     <h3>Branding</h3>
 
     <div style={{ marginBottom: "12px" }}>
-      <label>Business Tagline</label>
-      <input
-        type="text"
-        placeholder="Hustle hard. Fold with care."
-        style={inputStyle}
-      />
-    </div>
+  <label>Business Tagline</label>
+  <input
+    type="text"
+    value={businessTagline}
+    onChange={(e) => setBusinessTagline(e.target.value)}
+    style={inputStyle}
+  />
+</div>
 
-    <div style={{ marginBottom: "12px" }}>
-      <label>Primary Brand Color</label>
-      <input
-        type="color"
-      />
-    </div>
+<div style={{ marginBottom: "12px" }}>
+  <label>Primary Brand Color</label>
+  <input
+    type="color"
+    value={primaryColor}
+    onChange={(e) => setPrimaryColor(e.target.value)}
+  />
+</div>
 
-    <div style={{ marginBottom: "12px" }}>
-      <label>Secondary Brand Color</label>
-      <input
-        type="color"
-      />
-    </div>
+<div style={{ marginBottom: "12px" }}>
+  <label>Secondary Brand Color</label>
+  <input
+    type="color"
+    value={secondaryColor}
+    onChange={(e) => setSecondaryColor(e.target.value)}
+  />
+</div>
 
     <div style={{ marginBottom: "12px" }}>
       <label>Business Logo</label>
