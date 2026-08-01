@@ -39,6 +39,8 @@ if (!isLoggedIn) {
   const [customerMessageNotifications, setCustomerMessageNotifications] = useState(true);
   const [pickupReminderNotifications, setPickupReminderNotifications] = useState(true);
 
+  const [logoUrl, setLogoUrl] = useState("");
+
   const navigate = useNavigate();
   
 
@@ -108,22 +110,20 @@ setCustomers(customerData);
         setServiceRadius(data.serviceRadius || "");
         setPickupHours(data.pickupHours || "");
         setDeliveryHours(data.deliveryHours || "");
+
         setBusinessTagline( data.businessTagline || "Hustle hard. Fold with care." );
+        
         setPrimaryColor( data.primaryColor || "#2563eb" );
+        
         setSecondaryColor( data.secondaryColor || "#1e3a8a" );
+
+        setNewOrderNotifications( data.newOrderNotifications ?? true );
+
+        setCustomerMessageNotifications( data.customerMessageNotifications ?? true );
+
+        setPickupReminderNotifications( data.pickupReminderNotifications ?? true );
+
       }
-
-      setNewOrderNotifications(
-  data.newOrderNotifications ?? true
-);
-
-setCustomerMessageNotifications(
-  data.customerMessageNotifications ?? true
-);
-
-setPickupReminderNotifications(
-  data.pickupReminderNotifications ?? true
-);
 
     } catch (error) {
       console.error("Error loading settings:", error);
@@ -764,6 +764,7 @@ const saveSettings = async () => {
     />
     {" "}Pickup Reminder Notifications
   </label>
+  </div>
 
   <div style={{ marginTop: "30px" }}>
     <h3>Branding</h3>
@@ -796,20 +797,44 @@ const saveSettings = async () => {
   />
 </div>
 
-    <div style={{ marginBottom: "12px" }}>
-      <label>Business Logo</label>
-      <input
-        type="file"
-        accept="image/*"
+   <div style={{ marginBottom: "12px" }}>
+  <label>Business Logo</label>
+
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => {
+      const file = e.target.files?.[0];
+
+      if (file) {
+        const previewUrl = URL.createObjectURL(file);
+        setLogoUrl(previewUrl);
+      }
+    }}
+  />
+</div>
+
+{logoUrl && (
+  <div style={{ marginTop: "15px" }}>
+    <img
+      src={logoUrl}
+      alt="Business Logo"
+      style={{
+        maxWidth: "200px",
+        maxHeight: "120px",
+        borderRadius: "8px",
+        border: "1px solid #cbd5e1"
+      }}
       />
-    </div>
+      </div>
+)}
+
   </div>
 </div>
 
 </div>
 
 {/* END GRID */}
-</div> 
 
 <div style={{ marginTop: "30px" }}>
   <button
