@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { db } from "../firebase";
+import { db, storage } from "../firebase";
 import { collection, getDocs, doc, updateDoc, setDoc, getDoc } from "@firebase/firestore/lite";import { useNavigate } from "react-router-dom";
 import { Navigate } from "react-router-dom";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import AdminSchedule from "./AdminSchedule";
 import AdminServices from "./AdminServices";
 
@@ -40,6 +41,7 @@ if (!isLoggedIn) {
   const [pickupReminderNotifications, setPickupReminderNotifications] = useState(true);
 
   const [logoUrl, setLogoUrl] = useState("");
+  const [logoFile, setLogoFile] = useState(null);
 
   const navigate = useNavigate();
   
@@ -114,15 +116,13 @@ setCustomers(customerData);
         setBusinessTagline( data.businessTagline || "Hustle hard. Fold with care." );
         
         setPrimaryColor( data.primaryColor || "#2563eb" );
-        
         setSecondaryColor( data.secondaryColor || "#1e3a8a" );
 
         setNewOrderNotifications( data.newOrderNotifications ?? true );
-
         setCustomerMessageNotifications( data.customerMessageNotifications ?? true );
-
         setPickupReminderNotifications( data.pickupReminderNotifications ?? true );
 
+        setLogoUrl(data.logoUrl || "");
       }
 
     } catch (error) {
@@ -432,6 +432,19 @@ setCustomers(customerData);
 
 const saveSettings = async () => {
   try {
+    let savedLogoUrl = logoUrl;
+
+    if (logoFile) {
+  const logoRef = ref(
+    storage,
+    `branding/logo-${Date.now()}-${logoFile.name}`
+  );
+
+  await uploadBytes(logoRef, logoFile);
+
+  savedLogoUrl = await getDownloadURL(logoRef);
+}
+
     await setDoc(doc(db, "settings", "business"), {
   businessName,
   adminName,
@@ -446,7 +459,8 @@ const saveSettings = async () => {
   pickupReminderNotifications,
   businessTagline,
   primaryColor,
-  secondaryColor
+  secondaryColor,
+  logoUrl: savedLogoUrl
 });
 
     alert("Settings saved successfully!");
@@ -807,6 +821,8 @@ const saveSettings = async () => {
       const file = e.target.files?.[0];
 
       if (file) {
+        setLogoFile(file);
+
         const previewUrl = URL.createObjectURL(file);
         setLogoUrl(previewUrl);
       }
