@@ -473,9 +473,29 @@ const saveSettings = async () => {
   return (
     <div style={pageStyle}>
       <div style={containerStyle}>
-        <h2 style={{ color: "#1e3a8a", marginBottom: "20px" }}>
-          Admin Dashboard
-        </h2>
+        <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "15px",
+    marginBottom: "20px"
+  }}
+>
+  {logoUrl && (
+    <img
+    src={logoUrl}
+    alt="Business Logo"
+    style={{
+      width: "50px",
+      height: "50px"
+    }}
+    ></img>
+  )}
+  
+  <h2 style={{ color: "#1e3a8a", margin: 0 }}>
+    Admin Dashboard
+  </h2>
+</div>
 
         <div
           style={{
