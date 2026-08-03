@@ -27,6 +27,7 @@ export default function BookingStep1() {
   }
 }, [services]);
 
+  const [customerLogoUrl, setCustomerLogoUrl] = useState("");
   const [washFoldBags, setWashFoldBags] = useState(1);
   const [washFoldLbs, setWashFoldLbs] = useState(10);
   const [foldOnlyLbs, setFoldOnlyLbs] = useState(10);
@@ -83,6 +84,31 @@ const [otherConfirmed, setOtherConfirmed] =
 
     loadServices();
   }, []);
+
+  useEffect(() => {
+  const loadCustomerLogo = async () => {
+    try {
+      const settingsDoc = await getDoc(
+        doc(db, "settings", "business")
+      );
+
+      if (settingsDoc.exists()) {
+        const data = settingsDoc.data();
+
+        setCustomerLogoUrl(
+          data.customerLogoUrl || ""
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Error loading customer logo:",
+        error
+      );
+    }
+  };
+
+  loadCustomerLogo();
+}, []);
 
   const washFoldPrice =
     Number(services?.step1?.washFold?.pricePerLb || 2.25);
@@ -310,7 +336,7 @@ console.log({
         <ProgressBar step={1} />
 
 <img
-  src={logo}
+  src={customerLogoUrl || logo}
   alt="Hustle & Fold Logo"
   style={{
     width: "500px",
