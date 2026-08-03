@@ -40,8 +40,10 @@ if (!isLoggedIn) {
   const [customerMessageNotifications, setCustomerMessageNotifications] = useState(true);
   const [pickupReminderNotifications, setPickupReminderNotifications] = useState(true);
 
-  const [logoUrl, setLogoUrl] = useState("");
+  const [adminLogoUrl, setAdminLogoUrl] = useState("");
+  const [customerLogoUrl, setCustomerLogoUrl] = useState("");
   const [logoFile, setLogoFile] = useState(null);
+  const [customerLogoFile, setCustomerLogoFile] = useState(null);
 
   const navigate = useNavigate();
   
@@ -122,7 +124,8 @@ setCustomers(customerData);
         setCustomerMessageNotifications( data.customerMessageNotifications ?? true );
         setPickupReminderNotifications( data.pickupReminderNotifications ?? true );
 
-        setLogoUrl(data.logoUrl || "");
+        setAdminLogoUrl(data.logoUrl || "");
+        setCustomerLogoUrl(data.customerLogoUrl || "");
       }
 
     } catch (error) {
@@ -432,7 +435,8 @@ setCustomers(customerData);
 
 const saveSettings = async () => {
   try {
-    let savedLogoUrl = logoUrl;
+    let savedLogoUrl = adminLogoUrl;
+    let savedCustomerLogoUrl = customerLogoUrl;
 
     if (logoFile) {
   const logoRef = ref(
@@ -443,6 +447,17 @@ const saveSettings = async () => {
   await uploadBytes(logoRef, logoFile);
 
   savedLogoUrl = await getDownloadURL(logoRef);
+}
+
+if (customerLogoFile) {
+  const customerLogoRef = ref(
+    storage,
+    `branding/customer-logo-${Date.now()}-${customerLogoFile.name}`
+  );
+
+  await uploadBytes(customerLogoRef, customerLogoFile);
+
+  savedCustomerLogoUrl = await getDownloadURL(customerLogoRef);
 }
 
     await setDoc(doc(db, "settings", "business"), {
@@ -460,7 +475,8 @@ const saveSettings = async () => {
   businessTagline,
   primaryColor,
   secondaryColor,
-  logoUrl: savedLogoUrl
+  logoUrl: savedLogoUrl,
+  customerLogoUrl: savedCustomerLogoUrl,
 });
 
     alert("Settings saved successfully!");
@@ -481,9 +497,9 @@ const saveSettings = async () => {
     marginBottom: "20px"
   }}
 >
-  {logoUrl && (
+  {adminLogoUrl && (
     <img
-    src={logoUrl}
+    src={adminLogoUrl}
     alt="Business Logo"
     style={{
       width: "50px",
@@ -832,7 +848,7 @@ const saveSettings = async () => {
 </div>
 
    <div style={{ marginBottom: "12px" }}>
-  <label>Business Logo</label>
+  <label>Admin Logo</label>
 
   <input
     type="file"
@@ -844,17 +860,51 @@ const saveSettings = async () => {
         setLogoFile(file);
 
         const previewUrl = URL.createObjectURL(file);
-        setLogoUrl(previewUrl);
+        setAdminLogoUrl(previewUrl);
       }
     }}
   />
 </div>
 
-{logoUrl && (
+{adminLogoUrl && (
   <div style={{ marginTop: "15px" }}>
     <img
-      src={logoUrl}
+      src={adminLogoUrl}
       alt="Business Logo"
+      style={{
+        maxWidth: "200px",
+        maxHeight: "120px",
+        borderRadius: "8px",
+        border: "1px solid #cbd5e1"
+      }}
+      />
+      </div>
+)}
+
+<div style={{ marginBottom: "12px" }}>
+  <label>Customer Logo</label>
+
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => {
+      const file = e.target.files?.[0];
+
+      if (file) {
+        setCustomerLogoFile(file);
+
+        const previewUrl = URL.createObjectURL(file);
+        setCustomerLogoUrl(previewUrl);
+      }
+    }}
+  />
+</div>
+    
+{customerLogoUrl && (
+  <div style={{ marginTop: "15px" }}>
+    <img
+      src={customerLogoUrl}
+      alt="Customer Logo"
       style={{
         maxWidth: "200px",
         maxHeight: "120px",
