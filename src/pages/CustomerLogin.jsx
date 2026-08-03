@@ -1,14 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/HF Logo.png";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
+import { doc, getDoc } from "@firebase/firestore/lite";
 
 export default function CustomerLogin() {
   const navigate = useNavigate();
 
+  const [customerLogoUrl, setCustomerLogoUrl] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+  const loadCustomerLogo = async () => {
+    try {
+      const settingsDoc = await getDoc(
+        doc(db, "settings", "business")
+      );
+
+      if (settingsDoc.exists()) {
+        const data = settingsDoc.data();
+
+        setCustomerLogoUrl(
+          data.customerLogoUrl || ""
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Error loading customer logo:",
+        error
+      );
+    }
+  };
+
+  loadCustomerLogo();
+}, []);
 
   return (
     <div
@@ -33,7 +60,7 @@ export default function CustomerLogin() {
         }}
       >
         <img
-          src={logo}
+          src={customerLogoUrl}
           alt="Hustle & Fold Logo"
           style={{
             width: "400px",
