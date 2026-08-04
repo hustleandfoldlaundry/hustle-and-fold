@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import ProgressBar from "../ProgressBar";
+import logo from "../assets/HF Logo.png";
 import Step3Progress from "../Step3Progress";
 
 export default function BookingStep3Contact() {
@@ -13,6 +14,7 @@ const [name, setName] = useState(bookingData.name || "");
 const [address, setAddress] = useState(bookingData.address || "");
 const [city, setCity] = useState(bookingData.city || "");
 const [zip, setZip] = useState(bookingData.zip || "");
+const [customerLogoUrl, setCustomerLogoUrl] = useState("");
 const [unit, setUnit] = useState(bookingData.unit || "");
 const [phone, setPhone] = useState(bookingData.phone || "");
 const [email, setEmail] = useState(bookingData.email || "");
@@ -56,10 +58,39 @@ console.log("Current User:", user);
       setDeliveryCity(customer.deliveryCity || "");
       setDeliveryZip(customer.deliveryZip || "");
       setDeliveryUnit(customer.deliveryUnit || "");
-      if (customer.deliveryAddress) { setDifferentDeliveryAddress(true); } }
+      if (customer.deliveryAddress) { setDifferentDeliveryAddress(true);
+  }
+
+  }
+
   }
 
   loadCustomerProfile();
+}, []);
+
+useEffect(() => {
+  const loadCustomerLogo = async () => {
+    try {
+      const settingsDoc = await getDoc(
+        doc(db, "settings", "business")
+      );
+
+      if (settingsDoc.exists()) {
+        const data = settingsDoc.data();
+
+        setCustomerLogoUrl(
+          data.customerLogoUrl || ""
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Error loading customer logo:",
+        error
+      );
+    }
+  };
+
+  loadCustomerLogo();
 }, []);
 
 function formatPhoneNumber(value) {
@@ -197,6 +228,17 @@ return (
 <div style={{ minHeight: "100vh", backgroundColor: "#f5f9ff", padding: "30px" }}>
 <div style={{ maxWidth: "500px", margin: "0 auto", textAlign: "center" }}>
 
+<div style={{ width: "100%", maxWidth: "500px" }}>
+        <ProgressBar step={2} />
+
+      <img
+        src={customerLogoUrl || logo}
+        alt="Hustle & Fold Logo"
+        style={{
+          width: "500px",
+          marginBottom: "10px"
+        }}
+        />
 
     <h2 style={{ color: "#1e3a8a" }}>Contact Information</h2>
 
@@ -395,7 +437,7 @@ return (
     Next →
   </button>
 </div>
-
+</div>
   </div>
 </div>
 

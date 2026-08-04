@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import ProgressBar from "../ProgressBar";
 import { db } from "../firebase";
+import logo from "../assets/HF Logo.png";
 import { doc, getDoc, collection, getDocs, query, where } from "@firebase/firestore/lite";
 
 export default function BookingStep2() {
