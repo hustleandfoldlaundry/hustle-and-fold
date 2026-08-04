@@ -3,19 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import ProgressBar from "../ProgressBar";
 import { db } from "../firebase";
-import {
-  doc,
-  getDoc,
-  collection,
-  getDocs,
-  query,
-  where
-} from "@firebase/firestore/lite";
+import { doc, getDoc, collection, getDocs, query, where } from "@firebase/firestore/lite";
 
 export default function BookingStep2() {
   const navigate = useNavigate();
   const {bookingData,setBookingData,clearBooking,} = useBooking();
   const reorderData = bookingData.reorderData;
+  const [customerLogoUrl, setCustomerLogoUrl] = useState("");
   const [selectedDate, setSelectedDate] = useState(
   bookingData.pickupDate || ""
 );
@@ -73,6 +67,31 @@ const [deliverySpeed, setDeliverySpeed] = useState(
   loadOrders();
 }, []);
 
+useEffect(() => {
+  const loadCustomerLogo = async () => {
+    try {
+      const settingsDoc = await getDoc(
+        doc(db, "settings", "business")
+      );
+
+      if (settingsDoc.exists()) {
+        const data = settingsDoc.data();
+
+        setCustomerLogoUrl(
+          data.customerLogoUrl || ""
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Error loading customer logo:",
+        error
+      );
+    }
+  };
+
+  loadCustomerLogo();
+}, []);
+
   const today = new Date();
 today.setHours(0, 0, 0, 0);
 
@@ -88,7 +107,6 @@ const availableDates = Object.keys(schedule)
     );
   })
   .sort();
-``
 
   const availableTimes = selectedDate
   ? (schedule[selectedDate]?.slots || []).filter(
@@ -298,6 +316,15 @@ for (let day = 1; day <= daysInMonth; day++) {
       <div style={{ width: "100%", maxWidth: "500px" }}>
         <ProgressBar step={2} />
 
+      <img
+        src={customerLogoUrl || logo}
+        alt="Hustle & Fold Logo"
+        style={{
+          width: "500px",
+          marginBottom: "10px"
+        }}
+        />
+      
         <h2 style={{ textAlign: "center", color: "#1e3a8a" }}>
           Step 2: Pickup Schedule
         </h2>
