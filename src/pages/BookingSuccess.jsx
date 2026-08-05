@@ -1,6 +1,13 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { db } from "../firebase";
+import { doc, getDoc } from "@firebase/firestore/lite";
+import logo from "../assets/HF Logo.png";
 
 export default function BookingSuccess() {
+
+  const [customerLogoUrl, setCustomerLogoUrl] = useState("");
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -24,6 +31,31 @@ export default function BookingSuccess() {
     cursor: "pointer"
   };
 
+  useEffect(() => {
+  const loadCustomerLogo = async () => {
+    try {
+      const settingsDoc = await getDoc(
+        doc(db, "settings", "business")
+      );
+
+      if (settingsDoc.exists()) {
+        const data = settingsDoc.data();
+
+        setCustomerLogoUrl(
+          data.customerLogoUrl || ""
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Error loading customer logo:",
+        error
+      );
+    }
+  };
+
+  loadCustomerLogo();
+}, []);
+
   return (
     <div
       style={{
@@ -36,6 +68,16 @@ export default function BookingSuccess() {
     >
       <div style={{ width: "100%", maxWidth: "500px" }}>
         <div style={card}>
+
+          <img
+                  src={customerLogoUrl || logo}
+                  alt="Hustle & Fold Logo"
+                  style={{
+                    width: "400px",
+                    marginBottom: "10px"
+                  }}
+                  />
+
           <h1 style={{ color: "#1e3a8a" }}>Order Confirmed ✅</h1>
 
           <p>Your laundry pickup request has been submitted.</p>
