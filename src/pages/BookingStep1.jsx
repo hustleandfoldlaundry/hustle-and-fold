@@ -28,11 +28,11 @@ export default function BookingStep1() {
 }, [services]);
 
   const [customerLogoUrl, setCustomerLogoUrl] = useState("");
-  const [washFoldBags, setWashFoldBags] = useState(1);
-  const [washFoldLbs, setWashFoldLbs] = useState(10);
-  const [foldOnlyLbs, setFoldOnlyLbs] = useState(10);
+  const [washFoldBags, setWashFoldBags] = useState(0);
+  const [washFoldLbs, setWashFoldLbs] = useState(0);
+  const [foldOnlyLbs, setFoldOnlyLbs] = useState(0);
   const [foldOnlyType, setFoldOnlyType] = useState(reorderData?.foldOnlyType || "pound");
-  const [foldOnlyBags, setFoldOnlyBags] = useState(1);
+  const [foldOnlyBags, setFoldOnlyBags] = useState(0);
   const [washFoldBedding, setWashFoldBedding] = useState(
   reorderData?.washFoldBedding || 0
 );
@@ -260,6 +260,11 @@ console.log({
       setError("Please select at least one service.");
       return;
     }
+
+    if (total <= 0) {
+  setError("Please select at least one item.");
+  return;
+}
 
     if (otherCount > 0 && (!otherText || !otherConfirmed)) {
       setError(
@@ -1121,6 +1126,19 @@ console.log({
   Total:
   ${total.toFixed(2)}
 </p>
+
+{error && (
+  <p
+    style={{
+      color: "red",
+      marginTop: "15px",
+      marginBottom: "10px",
+      textAlign: "center"
+    }}
+  >
+    {error}
+  </p>
+)}
 
 <div
   style={{
