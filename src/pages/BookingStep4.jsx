@@ -4,6 +4,7 @@ import { useBooking } from "../context/BookingContext";
 import { auth, db, collection, addDoc } from "../firebase";
 import { doc, updateDoc, getDoc } from "@firebase/firestore/lite";
 import ProgressBar from "../ProgressBar";
+import logo from "../assets/HF Logo.png";
 
 export default function BookingStep4() {
   const navigate = useNavigate();
