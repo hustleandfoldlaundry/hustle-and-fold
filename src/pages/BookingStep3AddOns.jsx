@@ -5,6 +5,7 @@ import ProgressBar from "../ProgressBar";
 import Step3Progress from "../Step3Progress";
 import { auth, db } from "../firebase";
 import { doc, getDoc } from "@firebase/firestore/lite";
+import logo from "../assets/HF Logo.png";
 
 export default function BookingStep3AddOns() {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ export default function BookingStep3AddOns() {
 } = useBooking();
 
   const [services, setServices] = useState({});
-
+  const [customerLogoUrl, setCustomerLogoUrl] = useState("");
   const [addons, setAddons] = useState(
     bookingData.addons || {
       oxi: false,
@@ -64,6 +65,31 @@ function clearForm() {
 
     loadServices();
   }, []);
+
+  useEffect(() => {
+  const loadCustomerLogo = async () => {
+    try {
+      const settingsDoc = await getDoc(
+        doc(db, "settings", "business")
+      );
+
+      if (settingsDoc.exists()) {
+        const data = settingsDoc.data();
+
+        setCustomerLogoUrl(
+          data.customerLogoUrl || ""
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Error loading customer logo:",
+        error
+      );
+    }
+  };
+
+  loadCustomerLogo();
+}, []);
 
   useEffect(() => {
   async function loadCustomerPreferences() {
@@ -211,6 +237,15 @@ function clearForm() {
       >
         <ProgressBar step={3} />
         <Step3Progress />
+
+<img
+        src={customerLogoUrl || logo}
+        alt="Hustle & Fold Logo"
+        style={{
+          width: "500px",
+          marginBottom: "10px"
+        }}
+        />
 
         <h2 style={{ color: "#1e3a8a" }}>
           Add‑Ons
