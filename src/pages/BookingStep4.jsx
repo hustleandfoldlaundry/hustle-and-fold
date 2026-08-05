@@ -1,8 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import { auth, db, collection, addDoc } from "../firebase";
-import { doc, updateDoc } from "@firebase/firestore/lite";
+import { doc, updateDoc, getDoc } from "@firebase/firestore/lite";
 import ProgressBar from "../ProgressBar";
 
 export default function BookingStep4() {
@@ -20,6 +20,32 @@ export default function BookingStep4() {
   const [agreed, setAgreed] = useState(
     location.state?.termsAccepted || false
   );
+const [customerLogoUrl, setCustomerLogoUrl] = useState("");
+
+useEffect(() => {
+  const loadCustomerLogo = async () => {
+    try {
+      const settingsDoc = await getDoc(
+        doc(db, "settings", "business")
+      );
+
+      if (settingsDoc.exists()) {
+        const data = settingsDoc.data();
+
+        setCustomerLogoUrl(
+          data.customerLogoUrl || ""
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Error loading customer logo:",
+        error
+      );
+    }
+  };
+
+  loadCustomerLogo();
+}, []);
 
   console.log(location.state);
 
@@ -142,6 +168,15 @@ console.log("Initial Date:", deliveryDate);
     <div style={{ minHeight: "100vh", backgroundColor: "#f5f9ff", padding: "30px" }}>
       <div style={{ maxWidth: "500px", margin: "0 auto", textAlign: "center" }}>
         <ProgressBar step={4} />
+
+<img
+        src={customerLogoUrl || logo}
+        alt="Hustle & Fold Logo"
+        style={{
+          width: "500px",
+          marginBottom: "10px"
+        }}
+        />
 
         <h2 style={{ color: "#1e3a8a" }}>Review & Confirm</h2>
 
