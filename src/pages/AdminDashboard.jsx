@@ -1290,7 +1290,7 @@ if (customerLogoFile) {
                       <div style={{ ...fieldLabel, marginTop: "10px" }}>Pickup / Delivery</div>
                       <div>
                         <p>Pickup: {order.pickupDate || "No Date"} {order.pickupTime || ""}</p>
-                        <p>Delivery: {order.deliveryDate || "Not set"}</p>
+                        <p>Delivery: {order.estimatedDelivery || "Not set"}</p>
                       </div>
                     </div>
 

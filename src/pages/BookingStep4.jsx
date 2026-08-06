@@ -98,6 +98,20 @@ const termsReviewed =
   };
 }
 
+function parseTimeString(timeString) {
+  const match = timeString.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!match) return null;
+
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const modifier = match[3].toUpperCase();
+
+  if (modifier === "PM" && hours !== 12) hours += 12;
+  if (modifier === "AM" && hours === 12) hours = 0;
+
+  return { hours, minutes };
+}
+
 function getEstimatedDelivery() {
   if (
     !bookingData.pickupDate ||
@@ -109,12 +123,16 @@ function getEstimatedDelivery() {
 
   const [year, month, day] = bookingData.pickupDate.split("-").map(Number);
 
+const parsedTime = parseTimeString(
+  bookingData.pickupTime
+);
+
 const deliveryDate = new Date(
   year,
   month - 1,
   day,
-  10,
-  0,
+  parsedTime.hours,
+  parsedTime.minutes,
   0
 );
 

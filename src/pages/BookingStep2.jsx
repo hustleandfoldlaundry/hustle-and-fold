@@ -223,6 +223,9 @@ for (let day = 1; day <= daysInMonth; day++) {
   function getEstimatedDelivery() {
     if (!selectedDate || !selectedTime || !deliverySpeed) return "";
 
+console.log("selectedTime:", selectedTime);
+console.log("deliverySpeed:", deliverySpeed);
+
     const parsedTime = parseTimeString(selectedTime);
     if (!parsedTime) return "Invalid time format";
 
@@ -231,6 +234,8 @@ for (let day = 1; day <= daysInMonth; day++) {
 
     const addHours = deliverySpeed === "12" ? 12 : 24;
     deliveryDate.setHours(deliveryDate.getHours() + addHours);
+
+    console.log("deliveryDate:", deliveryDate);
 
     const deliveryDay = deliveryDate.toLocaleDateString("en-US", {
       weekday: "short",
@@ -268,6 +273,7 @@ for (let day = 1; day <= daysInMonth; day++) {
       pickupDate: selectedDate,
       pickupTime: selectedTime,
       deliverySpeed,
+      estimatedDelivery: getEstimatedDelivery(),
       step2Total: deliveryTotal,
       grandTotal
     });
