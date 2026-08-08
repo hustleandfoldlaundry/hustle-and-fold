@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import { auth, db, collection, addDoc } from "../firebase";
-import { doc, updateDoc, getDoc } from "@firebase/firestore/lite";
+import { doc, updateDoc, getDoc, setDoc } from "@firebase/firestore/lite";
 import ProgressBar from "../ProgressBar";
 import logo from "../assets/HF Logo.png";
 
@@ -546,7 +546,7 @@ const orderData = {
               const user = auth.currentUser;
 
 if (user) {
-  await updateDoc(
+  await setDoc(
     doc(db, "customers", user.uid),
     {
       pickupAddress: bookingData.address || "",
@@ -562,7 +562,8 @@ if (user) {
         bookingData.deliveryZip || "",
       deliveryUnit:
         bookingData.deliveryUnit || ""
-    }
+        },
+    { merge: true }
   );
 }
 

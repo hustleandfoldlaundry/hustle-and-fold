@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { db, storage } from "../firebase";
-import { collection, getDocs, doc, updateDoc, setDoc, getDoc } from "@firebase/firestore/lite";import { useNavigate } from "react-router-dom";
+import { collection, getDocs, doc, updateDoc, setDoc, getDoc, deleteDoc } from "@firebase/firestore/lite";import { useNavigate } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import AdminSchedule from "./AdminSchedule";
@@ -232,6 +232,29 @@ setCustomers(customerData);
       setSavingId("");
     }
   }
+
+  async function deleteOrder(orderId) {
+  if (
+    !window.confirm(
+      "Are you sure? This will permanently delete the order."
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await deleteDoc(doc(db, "orders", orderId));
+
+    setOrders((prev) =>
+      prev.filter((order) => order.id !== orderId)
+    );
+
+    alert("Order deleted.");
+  } catch (error) {
+    console.error("Delete error:", error);
+    alert("Failed to delete order.");
+  }
+}
 
   async function archiveOrder(id) {
     const confirmArchive = window.confirm(
@@ -1442,6 +1465,22 @@ if (customerLogoFile) {
                         Archive
                       </button>
                     )}
+
+<button
+  onClick={() => deleteOrder(order.id)}
+  style={{
+    marginLeft: "10px",
+    padding: "12px 18px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#dc2626",
+    color: "white",
+    cursor: "pointer"
+  }}
+>
+  Delete
+</button>
+
                   </div>
                 </div>
               );
