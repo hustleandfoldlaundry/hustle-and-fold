@@ -83,51 +83,51 @@ export default function Terms() {
           <p>
             Customers agree to:
             <br /><br />
-            - Remove all items from pockets (money, keys, jewelry, etc.)
+            - Remove all items from pockets (money, keys, jewelry, etc.).
             <br />
-            - Provide only items suitable for standard washing and drying
+            - Provide only items suitable for standard washing and drying.
             <br />
-            - Clearly label or separate any special-care items
+            - Clearly label or separate any special-care items.
             <br />
-            - Notify us of any specific instructions before service begins
+            - Notify us of any specific instructions before service begins.
             <br /><br />
             Hustle and Fold is not responsible for damage caused by items left in pockets or undisclosed special-care needs.
           </p>
 
           <h4>3. Wash and Fold Process</h4>
           <p>
-            - Laundry is processed by weight and by individual item count, so please pay close attention to your selections
+            - Laundry is processed by weight and by individual item count, so please pay close attention to your selections.
             <br />
             - Items may be washed together unless otherwise requested.
             <br />
-            - We do not guarantee complete stain removal
+            - We do not guarantee complete stain removal.
             <br />
-            - Care labels may not be individually inspected
+            - Care labels may not be individually inspected.
           </p>
 
           <h4>4. Turnaround Time</h4>
           <p>
-            - Standard turnaround time is 24 hours for 10 loads or less
+            - Standard turnaround time is 24 hours for 10 loads or less.
             <br />
-            - Express service (12-hour turnaround) is available for an additional fee
+            - Express service (12-hour turnaround) is available for an additional fee.
             <br />
-            - Delays may occur during unforeseen circumstances but will be communicated as soon as possible
+            - Delays may occur during unforeseen circumstances but will be communicated as soon as possible.
           </p>
 
           <h4>5. Pricing & Payment</h4>
           <p>
-            - Pricing is based on per pound, per load, or per order depending on selections
+            - Pricing is based on per pound, per load, or per order depending on selections.
             <br />
-            - Payment is due before delivery or upon pickup
+            - Payment is due before delivery or upon pickup.
             <br />
-            - Hustle and Fold reserves the right to hold items until payment is received in full
+            - Hustle and Fold reserves the right to hold items until payment is received in full.
           </p>
 
           <h4>6. Cancellations & Refunds</h4>
           <p>
-            - Orders may be canceled before pickup or processing begins
+            - Orders may be canceled before pickup or processing begins.
             <br />
-            - Once laundry has been processed, all sales are final and non-refundable
+            - Once laundry has been processed, all sales are final and non-refundable.
           </p>
 
           <h4>7. Damage & Risk Disclaimer</h4>
@@ -136,44 +136,44 @@ export default function Terms() {
           </p>
 
           <p>
-            - Laundry is processed at the customer's own risk
+            - Laundry is processed at the customer's own risk.
             <br />
             - We are not responsible for:
             <br />
-            - Shrinkage or stretching
+            - Shrinkage or stretching.
             <br />
-            - Color bleeding or fading
+            - Color bleeding or fading.
             <br />
-            - Wear and tear or fabric weakness
+            - Wear and tear or fabric weakness.
             <br />
-            - Missing buttons, zippers, or embellishments
+            - Missing buttons, zippers, or embellishments.
             <br />
-            - Manufacturer defects
+            - Manufacturer defects.
           </p>
 
           <h4>8. Lost or Damaged Items</h4>
           <p>
-            - Claims must be reported within 24-48 hours of reeiving your order
+            - Claims must be reported within 24-48 hours of receiving your order.
             <br />
-            - After this period, claims may not be accepted
+            - After this period, claims may not be accepted.
             <br />
-            - Compensation, if applicable, will be limited to a reasonable amount based on service value
+            - Compensation, if applicable, will be limited to a reasonable amount based on service value.
           </p>
 
           <h4>9. Unclaimed Laundry</h4>
           <p>
-            - Laundry not picked up on time may incur daily storage fees
+            - Laundry not picked up on time may incur daily storage fees.
             <br />
-            - After 7 days, unclaimed items may be donated or disposed of
+            - After 7 days, unclaimed items may be donated or disposed of.
           </p>
 
           <h4>10. Pickup & Delivery</h4>
           <p>
-            - Accurate pickup/drop-off details must be provided
+            - Accurate pickup/drop-off details must be provided.
             <br />
-            - Hustle and Fold is not responsible for unattended items unless authorized
+            - Hustle and Fold is not responsible for unattended items unless authorized.
             <br />
-            - Missed pickups or redelivery may incur additional fees
+            - Missed pickups or redelivery may incur additional fees.
           </p>
 
           <h4>11. Right to Refuse Service</h4>
@@ -181,11 +181,11 @@ export default function Terms() {
             We reserve the right to refuse service for:
           </p>
           <p>
-            - Hazardous or contaminated items
+            - Hazardous or contaminated items.
             <br />
-            - Infested items (bed bugs, fleas, etc.)
+            - Infested items (bed bugs, fleas, etc.).
             <br />
-            - Items not suitable for regular laundering
+            - Items not suitable for regular laundering.
           </p>
 
           <h4>12. Limitation of Liability</h4>
@@ -194,14 +194,14 @@ export default function Terms() {
           </p>
 
           <p>
-            - Hustle and Fold Laundry Services is not liable for indirect or consequential damages
+            - Hustle and Fold Laundry Services is not liable for indirect or consequential damages.
             <br />
-            - Total liability will not excees the value of the service provided
+            - Total liability will not exceeds the value of the service provided.
           </p>
 
           <h4>13. Governing Law</h4>
           <p>
-            These Terms are govern by the laws of the State of California
+            These Terms are governed by the laws of the State of California.
           </p>
 
           <h4>14. Contact</h4>
