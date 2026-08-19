@@ -75,7 +75,11 @@ export default function Home() {
               minWidth: "230px"
             }}
           >
-            Customers Enter Here
+            Household Customers Enter Here
+          </button>
+
+          <button onClick={() => navigate("/corporate")}>
+            Corporate Customers Enter Here
           </button>
 
           <button
