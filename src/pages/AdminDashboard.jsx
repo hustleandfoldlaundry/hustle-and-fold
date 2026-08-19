@@ -45,6 +45,7 @@ if (!isLoggedIn) {
   const [logoFile, setLogoFile] = useState(null);
   const [customerLogoFile, setCustomerLogoFile] = useState(null);
 
+  const [corporateLeads, setCorporateLeads] = useState([]);
   const navigate = useNavigate();
   
 
@@ -87,6 +88,18 @@ const customerData = customerSnapshot.docs.map(
 );
 
 setCustomers(customerData);
+const corporateSnapshot = await getDocs(
+  collection(db, "corporateLeads")
+);
+
+const corporateData = corporateSnapshot.docs.map(
+  (doc) => ({
+    id: doc.id,
+    ...doc.data()
+  })
+);
+
+setCorporateLeads(corporateData);
     } catch (err) {
       console.error("Error loading orders:", err);
     }
@@ -543,7 +556,7 @@ if (customerLogoFile) {
             gap: "10px"
           }}
         >
-          {["Orders", "Schedule", "Services", "Customers", "Messages", "Settings"].map((label) => (
+          {["Orders", "Schedule", "Services", "Customers", "Corporate Leads", "Messages", "Settings"].map((label) => (
             <button
               key={label}
               style={topButton(label)}
@@ -685,6 +698,59 @@ if (customerLogoFile) {
 
 {activeTab === "Services" && (
   <AdminServices />
+)}
+
+{activeTab === "Corporate Leads" && (
+  <div style={{ marginTop: "20px" }}>
+    <h2>Corporate Leads</h2>
+
+    {corporateLeads.length === 0 ? (
+      <p>No corporate leads found.</p>
+    ) : (
+      corporateLeads.map((lead) => (
+        <div
+          key={lead.id}
+          style={{
+            background: "white",
+            padding: "20px",
+            marginTop: "10px",
+            borderRadius: "12px",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
+          }}
+        >
+          <h3>{lead.companyName}</h3>
+
+          <p>
+            <strong>Contact:</strong>{" "}
+            {lead.contactName}
+          </p>
+
+          <p>
+            <strong>Phone:</strong> {lead.phone}
+          </p>
+
+          <p>
+            <strong>Email:</strong> {lead.email}
+          </p>
+
+          <p>
+            <strong>Business Type:</strong>{" "}
+            {lead.businessType}
+          </p>
+
+          <p>
+            <strong>Weekly Volume:</strong>{" "}
+            {lead.weeklyVolume}
+          </p>
+
+          <p>
+            <strong>Message:</strong>{" "}
+            {lead.message}
+          </p>
+        </div>
+      ))
+    )}
+  </div>
 )}
 
 {activeTab === "Settings" && (
