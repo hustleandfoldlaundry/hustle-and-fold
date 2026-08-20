@@ -216,6 +216,31 @@ setCorporateLeads(corporateData);
     );
   }
 
+async function deleteLead(leadId) {
+  if (
+    !window.confirm(
+      "Are you sure you want to permanently delete this lead?"
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await deleteDoc(
+      doc(db, "corporateLeads", leadId)
+    );
+
+    setCorporateLeads((prev) =>
+      prev.filter((lead) => lead.id !== leadId)
+    );
+  } catch (error) {
+    console.error(
+      "Error deleting lead:",
+      error
+    );
+  }
+}
+
   async function saveOrder(order) {
     try {
       setSavingId(order.id);
@@ -748,9 +773,42 @@ if (customerLogoFile) {
           <h3>{lead.companyName}</h3>
 
           <p>
-            <strong>Status:</strong>{" "}
-            {lead.status || "New"}
-          </p>
+  <strong>Status:</strong>{" "}
+  <span
+    style={{
+      padding: "4px 10px",
+      borderRadius: "999px",
+      color: "white",
+      backgroundColor:
+        lead.status === "Customer"
+          ? "#16a34a"
+          : lead.status === "Quoted"
+          ? "#9333ea"
+          : lead.status === "Contacted"
+          ? "#f59e0b"
+          : lead.status === "Closed"
+          ? "#6b7280"
+          : "#2563eb"
+    }}
+  >
+    {lead.status || "New"}
+  </span>
+</p>
+
+<button
+  onClick={() => deleteLead(lead.id)}
+  style={{
+    marginTop: "10px",
+    padding: "10px 14px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#dc2626",
+    color: "white",
+    cursor: "pointer"
+  }}
+>
+  Delete Lead
+</button>
 
           <div
   style={{
