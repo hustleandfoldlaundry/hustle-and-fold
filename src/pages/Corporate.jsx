@@ -70,6 +70,104 @@ async function handleSubmit(e) {
         restaurants, and local businesses.
       </p>
 
+        <div
+  style={{
+    maxWidth: "900px",
+    margin: "40px auto",
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "15px"
+  }}
+>
+  {[
+    "Airbnb & Vacation Rentals",
+    "Hotels & Motels",
+    "Medical Offices",
+    "Fitness Studios",
+    "Restaurants",
+    "Salons & Spas"
+  ].map((industry) => (
+    <div
+      key={industry}
+      style={{
+        background: "white",
+        padding: "20px",
+        borderRadius: "12px",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
+      }}
+    >
+      {industry}
+    </div>
+  ))}
+</div>
+
+<div
+  style={{
+    maxWidth: "900px",
+    margin: "40px auto",
+    background: "white",
+    padding: "30px",
+    borderRadius: "12px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
+  }}
+>
+  <h2 style={{ color: "#1e3a8a" }}>
+    Why Hustle & Fold?
+  </h2>
+
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+      gap: "15px",
+      marginTop: "20px"
+    }}
+  >
+    <div>✅ Scheduled Pickup & Delivery</div>
+    <div>✅ Flexible Service Plans</div>
+    <div>✅ Fast Turnaround Times</div>
+    <div>✅ Dedicated Account Support</div>
+    <div>✅ Volume Pricing Available</div>
+    <div>✅ Reliable Local Service</div>
+  </div>
+</div>
+
+<div
+  style={{
+    maxWidth: "900px",
+    margin: "40px auto",
+    textAlign: "center"
+  }}
+>
+  <h2 style={{ color: "#1e3a8a" }}>
+    Let's Build a Laundry Solution for Your Business
+  </h2>
+
+  <p
+    style={{
+      fontSize: "18px",
+      maxWidth: "700px",
+      margin: "15px auto"
+    }}
+  >
+    Whether you need weekly linen service,
+    vacation rental turnovers, towel service,
+    or a custom laundry plan, our team can
+    create a solution tailored to your needs.
+  </p>
+
+  <p
+    style={{
+      fontWeight: "bold",
+      color: "#2563eb"
+    }}
+  >
+    Request a consultation below and we'll
+    contact you to discuss pricing, pickup
+    schedules, and service options.
+  </p>
+</div>
+
       {submitted ? (
   <div style={{ marginTop: "30px" }}>
     <h2 style={{ color: "#16a34a" }}>
