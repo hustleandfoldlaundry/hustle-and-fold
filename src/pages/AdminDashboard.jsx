@@ -316,6 +316,66 @@ async function deleteLead(leadId) {
     }
   }
 
+  async function updateLeadNotes(
+  leadId,
+  notes
+) {
+  try {
+    await updateDoc(
+      doc(db, "corporateLeads", leadId),
+      {
+        notes
+      }
+    );
+
+    setCorporateLeads((prev) =>
+      prev.map((lead) =>
+        lead.id === leadId
+          ? { ...lead, notes }
+          : lead
+      )
+    );
+  } catch (error) {
+    console.error(
+      "Error updating lead notes:",
+      error
+    );
+  }
+}
+
+async function updateLeadDates(
+  leadId,
+  lastContactDate,
+  nextFollowUpDate
+) {
+  try {
+    await updateDoc(
+      doc(db, "corporateLeads", leadId),
+      {
+        lastContactDate,
+        nextFollowUpDate
+      }
+    );
+
+    setCorporateLeads((prev) =>
+      prev.map((lead) =>
+        lead.id === leadId
+          ? {
+              ...lead,
+              lastContactDate,
+              nextFollowUpDate
+            }
+          : lead
+      )
+    );
+  } catch (error) {
+    console.error(
+      "Error updating follow-up dates:",
+      error
+    );
+  }
+}
+
 async function updateLeadStatus(
   leadId,
   status
@@ -886,10 +946,118 @@ if (customerLogoFile) {
             {lead.weeklyVolume}
           </p>
 
+console.log("Lead Data:", lead);
+
+          <p>
+  <strong>Last Contact:</strong>{" "}
+  {lead.lastContactDate || "Not set"}
+</p>
+
+<p>
+  <strong>Next Follow-Up:</strong>{" "}
+  {lead.nextFollowUpDate || "Not set"}
+</p>
+
+<div style={{ marginTop: "10px" }}>
+  <label>
+    Last Contact Date:
+  </label>
+
+  <input
+    type="date"
+    defaultValue={lead.lastContactDate || ""}
+    id={`last-contact-${lead.id}`}
+    style={{
+      display: "block",
+      marginTop: "5px",
+      marginBottom: "10px"
+    }}
+  />
+
+  <label>
+    Next Follow-Up Date:
+  </label>
+
+  <input
+    type="date"
+    defaultValue={lead.nextFollowUpDate || ""}
+    id={`next-followup-${lead.id}`}
+    style={{
+      display: "block",
+      marginTop: "5px"
+    }}
+  />
+
+  <button
+    onClick={() =>
+      updateLeadDates(
+        lead.id,
+        document.getElementById(
+          `last-contact-${lead.id}`
+        ).value,
+        document.getElementById(
+          `next-followup-${lead.id}`
+        ).value
+      )
+    }
+    style={{
+      marginTop: "10px",
+      padding: "8px 14px",
+      borderRadius: "8px",
+      border: "none",
+      backgroundColor: "#2563eb",
+      color: "white",
+      cursor: "pointer"
+    }}
+  >
+    Save Follow-Up
+  </button>
+</div>
+
           <p>
             <strong>Message:</strong>{" "}
             {lead.message}
           </p>
+
+          <div style={{ marginTop: "10px" }}>
+  <strong>Notes:</strong>
+
+  <textarea
+    defaultValue={lead.notes || ""}
+    id={`notes-${lead.id}`}
+    rows="4"
+    style={{
+      width: "100%",
+      marginTop: "8px",
+      padding: "8px",
+      borderRadius: "8px"
+    }}
+  />
+
+  <button
+    onClick={() =>
+      updateLeadNotes(
+        lead.id,
+        document.getElementById(
+          `notes-${lead.id}`
+        ).value
+      )
+    }
+    style={{
+      marginTop: "8px",
+      padding: "8px 14px",
+      borderRadius: "8px",
+      border: "none",
+      backgroundColor: "#2563eb",
+      color: "white",
+      cursor: "pointer"
+    }}
+  >
+    Save Notes
+  </button>
+</div>
+
+
         </div>
       ))
     )}

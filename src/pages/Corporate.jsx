@@ -28,6 +28,8 @@ async function handleSubmit(e) {
         weeklyVolume,
         message,
         status: "New",
+        lastContactDate: "",
+        nextFollowUpDate: "",
         createdAt: new Date().toISOString()
       }
     );
