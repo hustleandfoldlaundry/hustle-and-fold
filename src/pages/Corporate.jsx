@@ -27,6 +27,7 @@ async function handleSubmit(e) {
         businessType,
         weeklyVolume,
         message,
+        status: "New",
         createdAt: new Date().toISOString()
       }
     );

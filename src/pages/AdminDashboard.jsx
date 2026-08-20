@@ -291,6 +291,33 @@ setCorporateLeads(corporateData);
     }
   }
 
+async function updateLeadStatus(
+  leadId,
+  status
+) {
+  try {
+    await updateDoc(
+      doc(db, "corporateLeads", leadId),
+      {
+        status
+      }
+    );
+
+    setCorporateLeads((prev) =>
+      prev.map((lead) =>
+        lead.id === leadId
+          ? { ...lead, status }
+          : lead
+      )
+    );
+  } catch (error) {
+    console.error(
+      "Error updating lead status:",
+      error
+    );
+  }
+}
+
   async function restoreOrder(id) {
     try {
       await updateDoc(doc(db, "orders", id), {
@@ -719,6 +746,64 @@ if (customerLogoFile) {
           }}
         >
           <h3>{lead.companyName}</h3>
+
+          <p>
+            <strong>Status:</strong>{" "}
+            {lead.status || "New"}
+          </p>
+
+          <div
+  style={{
+    display: "flex",
+    gap: "8px",
+    flexWrap: "wrap",
+    marginTop: "10px"
+  }}
+>
+  <button
+    onClick={() =>
+      updateLeadStatus(
+        lead.id,
+        "Contacted"
+      )
+    }
+  >
+    Contacted
+  </button>
+
+  <button
+    onClick={() =>
+      updateLeadStatus(
+        lead.id,
+        "Quoted"
+      )
+    }
+  >
+    Quoted
+  </button>
+
+  <button
+    onClick={() =>
+      updateLeadStatus(
+        lead.id,
+        "Customer"
+      )
+    }
+  >
+    Customer
+  </button>
+
+  <button
+    onClick={() =>
+      updateLeadStatus(
+        lead.id,
+        "Closed"
+      )
+    }
+  >
+    Closed
+  </button>
+</div>
 
           <p>
             <strong>Contact:</strong>{" "}
