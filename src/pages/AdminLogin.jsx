@@ -92,7 +92,14 @@ boxShadow:
 "0 4px 10px rgba(0,0,0,0.08)"
 }}
 >
-{logo}
+<img
+src={logo}
+alt="Hustle & Fold Logo"
+style={{
+width: "350px",
+marginBottom: "10px"
+}}
+/>
 
 <h2>Admin Login</h2>
 
