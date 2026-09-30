@@ -534,9 +534,11 @@ console.log("Initial Date:", deliveryDate);
 } = bookingData;
 
 const orderData = {
-  ...cleanBookingData,
-  orderId,
-  createdAt: new Date().toISOString()
+...cleanBookingData,
+orderId,
+status: "New",
+adminViewed: false,
+createdAt: new Date().toISOString()
 };
 
               console.log("ORDER DATA:", orderData);

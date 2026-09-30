@@ -20,6 +20,7 @@ if (!isLoggedIn) {
   const [activeTab, setActiveTab] = useState("Orders");
   const [savingId, setSavingId] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+  const [newOrderCount, setNewOrderCount] = useState(0);
 
   const [businessName, setBusinessName] = useState("Hustle & Fold");
   const [adminName, setAdminName] = useState("CeCe");
@@ -65,6 +66,10 @@ if (!isLoggedIn) {
           deliveryDate: order.deliveryDate || "",
           deliveryTime: order.deliveryTime || "",
           status: order.status || "",
+          adminViewed:
+            order.status === "Accepted"
+              ? true
+              : order.adminViewed ?? false,
           tagColor: order.tagColor || "",
           paid: order.paid || false,
           archived: order.archived || false,
@@ -73,8 +78,13 @@ if (!isLoggedIn) {
         };
       });
 
-      setOrders(data.reverse());
       setOrders(data);
+
+      const unreadOrders = data.filter(
+        (order) => order.adminViewed === false
+      );
+
+      setNewOrderCount(unreadOrders.length);
 
 const customerSnapshot = await getDocs(
   collection(db, "customers")
@@ -664,23 +674,60 @@ if (customerLogoFile) {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(7, 1fr)",
+            gridTemplateColumns: "repeat(8, 1fr)",
             gap: "10px"
           }}
         >
-          {["Orders", "Schedule", "Services", "Customers", "Corporate Leads", "Messages", "Settings"].map((label) => (
+          {[
+            "Orders",
+            "Schedule",
+            "Services",
+            "Customers",
+            "Corporate Leads",
+            "Messages",
+            "Settings"
+          ].map((label) => (
             <button
               key={label}
-              style={topButton(label)}
+              style={{
+                ...topButton(label),
+                position: "relative"
+              }}
               onClick={() => {
-  setActiveTab(label);
-}}
->
+                setActiveTab(label);
+              }}
+            >
               {label}
+
+              {label === "Orders" && newOrderCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-8px",
+                    right: "-8px",
+                    minWidth: "20px",
+                    height: "20px",
+                    padding: "0 5px",
+                    borderRadius: "999px",
+                    backgroundColor: "#dc2626",
+                    color: "white",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}
+                >
+                  {newOrderCount}
+                </span>
+              )}
             </button>
           ))}
 
-          <button style={topButton("Refresh")} onClick={loadOrders}>
+          <button
+            style={topButton("Refresh")}
+            onClick={loadOrders}
+          >
             Refresh
           </button>
         </div>
