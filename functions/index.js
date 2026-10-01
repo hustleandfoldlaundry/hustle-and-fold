@@ -1,0 +1,125 @@
+const {
+  onDocumentCreated
+} = require("firebase-functions/v2/firestore");
+
+const {
+  defineSecret
+} = require("firebase-functions/params");
+
+const logger = require("firebase-functions/logger");
+
+const {Resend} = require("resend");
+
+const resendApiKey = defineSecret("RESEND_API_KEY");
+
+exports.sendNewOrderEmail = onDocumentCreated(
+  {
+    document: "orders/{orderDocumentId}",
+    secrets: [resendApiKey],
+    maxInstances: 10
+  },
+  async (event) => {
+    const order = event.data?.data();
+
+    if (!order) {
+      logger.error("New order data was unavailable.");
+      return;
+    }
+
+    const resend = new Resend(resendApiKey.value());
+
+    const orderNumber =
+      order.orderId || event.params.orderDocumentId;
+
+    const customerName =
+      order.name || "Not provided";
+
+    const customerEmail =
+      order.email || "Not provided";
+
+    const customerPhone =
+      order.phone || "Not provided";
+
+    const pickupDate =
+      order.pickupDate || "Not provided";
+
+    const pickupTime =
+      order.pickupTime || "Not provided";
+
+    const estimatedDelivery =
+      order.estimatedDelivery || "Not provided";
+
+    const orderTotal = Number(
+      order.grandTotal || 0
+    ).toFixed(2);
+
+    try {
+      const {data, error} = await resend.emails.send({
+        from: "Hustle & Fold <onboarding@resend.dev>",
+        to: ["hustleandfoldlaundry@gmail.com"],
+        subject: `New Order Received: ${orderNumber}`,
+        html: `
+          <h1>New Hustle & Fold Order</h1>
+
+          <p>
+            A new household order has been submitted.
+          </p>
+
+          <h2>Order Details</h2>
+
+          <p><strong>Order:</strong> ${orderNumber}</p>
+          <p><strong>Customer:</strong> ${customerName}</p>
+          <p><strong>Email:</strong> ${customerEmail}</p>
+          <p><strong>Phone:</strong> ${customerPhone}</p>
+
+          <p>
+            <strong>Pickup:</strong>
+            ${pickupDate} at ${pickupTime}
+          </p>
+
+          <p>
+            <strong>Estimated Delivery:</strong>
+            ${estimatedDelivery}
+          </p>
+
+          <p>
+            <strong>Estimated Total:</strong>
+            $${orderTotal}
+          </p>
+
+          <p>
+            Open the Hustle & Fold Admin Dashboard
+            to review and accept this order.
+          </p>
+        `
+      });
+
+      if (error) {
+  throw new Error(
+    `Resend error: ${JSON.stringify(error)}`
+  );
+}
+
+      logger.info(
+        "New order email sent successfully.",
+        {
+          orderNumber,
+          emailId: data?.id
+        }
+      );
+} catch (error) {
+  logger.error(
+    "New order email failed.",
+    {
+      orderNumber,
+      errorMessage:
+        error?.message || String(error),
+      errorStack:
+        error?.stack || "No stack available"
+    }
+  );
+
+  throw error;
+}
+  }
+);
