@@ -100,6 +100,53 @@ exports.sendNewOrderEmail = onDocumentCreated(
   );
 }
 
+logger.info("Customer email address", {
+  customerEmail,
+  customerName,
+});
+
+await resend.emails.send({
+  from: "Hustle & Fold <orders@hustleandfoldlaundry.com>",
+  to: [customerEmail],
+  subject: "We've Received Your Order",
+  html: `
+    <h1>Thank You, ${customerName}!</h1>
+
+    <p>
+      We have successfully received your order.
+    </p>
+
+    <p>
+      <strong>Order Number:</strong>
+      ${orderNumber}
+    </p>
+
+    <p>
+      <strong>Pickup Date:</strong>
+      ${pickupDate}
+    </p>
+
+    <p>
+      <strong>Pickup Time:</strong>
+      ${pickupTime}
+    </p>
+
+    <p>
+      <strong>Estimated Total:</strong>
+      $${orderTotal}
+    </p>
+
+    <p>
+      Our team will review your order and keep
+      you updated as it moves through the process.
+    </p>
+
+    <p>
+      Thank you for choosing Hustle & Fold!
+    </p>
+  `
+});
+
       logger.info(
         "New order email sent successfully.",
         {
