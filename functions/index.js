@@ -188,7 +188,24 @@ exports.sendStatusUpdateEmail = onDocumentUpdated(
       return;
     }
 
-    if (after.status !== "Accepted") {
+    const supportedStatuses = [
+  "Accepted",
+  "Pending Pickup",
+  "Picked Up",
+  "In Process",
+  "Ready For Drop-Off",
+  "Delivered",
+  "Order Complete",
+  "Cancelled"
+];
+
+    logger.info("Order status changed", {
+      orderId: event.params.orderDocumentId,
+      oldStatus: before.status,
+      newStatus: after.status,
+    });
+
+if (!supportedStatuses.includes(after.status)) {
   return;
 }
 
@@ -198,17 +215,95 @@ const customerEmail = after.email;
 const customerName = after.name || "Customer";
 const orderNumber =
   after.orderId || event.params.orderDocumentId;
+let subject = "";
+let heading = "";
+let message = "";
+let nextStep = "";
+
+if (after.status === "Accepted") {
+  subject = "Your Order Has Been Accepted";
+  heading = `Good News, ${customerName}!`;
+  message =
+    "Your order has been accepted by the Hustle & Fold team.";
+  nextStep =
+    "Our team is preparing for your upcoming pickup and will keep you informed every step of the way.";
+}
+
+if (after.status === "Pending Pickup") {
+  subject = "Your Pickup Is Being Scheduled";
+  heading = `Hello, ${customerName}!`;
+  message =
+    "Your order has been approved and is now awaiting pickup.";
+  nextStep =
+    "Our team is coordinating your pickup and will notify you once your laundry has been collected.";
+}
+
+if (after.status === "Picked Up") {
+  subject = "Your Laundry Has Been Picked Up";
+  heading = `Your Laundry Is on Its Way, ${customerName}!`;
+  message =
+    "We have picked up your laundry and will begin processing it soon.";
+  nextStep = 
+    "Your laundry is heading to our facility where it will be washed, dried, and folded with care.";
+}
+
+if (after.status === "In Process") {
+  subject = "Your Laundry Is Being Processed";
+  heading = `We're Working on It, ${customerName}!`;
+  message =
+    "Your laundry is currently being washed, dried, and folded.";
+  nextStep = 
+    "Our team is carefully processing your order and preparing them for delivery.";
+}
+
+if (after.status === "Ready For Drop-Off") {
+  subject = "Your Laundry Is Ready For Delivery";
+  heading = `Almost There, ${customerName}!`;
+  message =
+    "Your laundry is complete and is being prepared for delivery.";
+  nextStep =
+    "Your freshly cleaned laundry is being packed and scheduled for return.";
+}
+
+if (after.status === "Delivered") {
+  subject = "Your Laundry Has Been Delivered";
+  heading = `Delivery Complete, ${customerName}!`;
+  message =
+    "Your laundry has been delivered. Thank you for choosing Hustle & Fold.";
+  nextStep = 
+    "If you have any questions about your order, we're always happy to help.";
+}
+
+if (after.status === "Order Complete") {
+  subject = "Your Order Is Complete";
+  heading = `Thank You, ${customerName}!`;
+  message =
+    "Your order is now complete.";
+  nextStep = 
+    "Thank you for trusting Hustle and Fold. We appreciate your business and look forward to serving you again.";
+}
+
+if (after.status === "Cancelled") {
+  subject = "Your Order Has Been Cancelled";
+  heading = `Order Cancelled, ${customerName}`;
+  message =
+    "Your order has been cancelled.";
+
+  nextStep =
+    "If you believe this was done in error or would like to reschedule service, please contact Hustle & Fold and we'll be happy to assist you.";
+}
 
 await resend.emails.send({
   from: "Hustle & Fold <orders@hustleandfoldlaundry.com>",
   to: [customerEmail],
-  subject: "Your Order Has Been Accepted",
+  subject: subject,
+
   html: `
-    <h1>Good News, ${customerName}!</h1>
+    <h1>${heading}</h1>
 
     <p>
-      Your order has been accepted by the Hustle & Fold team.
-    </p>
+  ${message}
+</p>
 
     <p>
       <strong>Order Number:</strong>
@@ -216,7 +311,7 @@ await resend.emails.send({
     </p>
 
     <p>
-      We are preparing your order for pickup and will keep you updated as it moves through our process.
+      ${nextStep}
     </p>
 
     <p>
@@ -230,10 +325,6 @@ logger.info("Accepted status email sent", {
   customerEmail
 });
 
-    logger.info("Order status changed", {
-      orderId: event.params.orderDocumentId,
-      oldStatus: before.status,
-      newStatus: after.status,
-    });
+
   }
 );
