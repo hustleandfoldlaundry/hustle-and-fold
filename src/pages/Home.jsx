@@ -78,9 +78,21 @@ export default function Home() {
             Household Customers Enter Here
           </button>
 
-          <button onClick={() => navigate("/corporate")}>
-            Corporate Customers Enter Here
-          </button>
+          <button
+  onClick={() => navigate("/corporate")}
+  style={{
+    backgroundColor: "#059669",
+    color: "white",
+    border: "none",
+    borderRadius: "12px",
+    padding: "18px 30px",
+    fontSize: "18px",
+    cursor: "pointer",
+    minWidth: "230px"
+  }}
+>
+  Corporate Customers Enter Here
+</button>
 
           <button
             onClick={() => navigate("/admin")}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { db } from "../firebase";
 import { collection, addDoc } from "@firebase/firestore/lite";
-
+import { useNavigate } from "react-router-dom";
 
 export default function Corporate() {
     const [companyName, setCompanyName] = useState("");
@@ -12,7 +12,8 @@ export default function Corporate() {
     const [weeklyVolume, setWeeklyVolume] = useState("");
     const [message, setMessage] = useState("");
     const [submitted, setSubmitted] = useState(false);
-  
+    const navigate = useNavigate();
+
 async function handleSubmit(e) {
   e.preventDefault();
 
@@ -87,19 +88,32 @@ async function handleSubmit(e) {
     "Medical Offices",
     "Fitness Studios",
     "Restaurants",
-    "Salons & Spas"
+    "Salons & Spas",
+    "Sports Teams"
   ].map((industry) => (
+    
     <div
-      key={industry}
-      style={{
-        background: "white",
-        padding: "20px",
-        borderRadius: "12px",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
-      }}
-    >
-      {industry}
-    </div>
+  key={industry}
+  onClick={() =>
+  navigate(
+    `/corporate/${industry
+      .toLowerCase()
+      .replace(/ & /g, "-")
+      .replace(/\s+/g, "-")}`
+  )
+}
+  style={{
+    background: "white",
+    padding: "20px",
+    borderRadius: "12px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
+    cursor: "pointer",
+    textAlign: "center",
+    fontWeight: "600"
+  }}
+>
+  {industry}
+</div>
   ))}
 </div>
 
