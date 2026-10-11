@@ -52,7 +52,8 @@ async function handleSubmit(e) {
       style={{
         marginTop: "50px",
         paddingTop: "30px",
-        borderTop: "1px solid #e5e7eb"
+        borderTop: "1px solid #e5e7eb",
+        textAlign: "center"
       }}
     >
       <h2 style={{ color: "#1e3a8a" }}>

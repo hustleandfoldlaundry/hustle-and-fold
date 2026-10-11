@@ -57,6 +57,53 @@ async function handleSubmit(e) {
         textAlign: "center"
       }}
     >
+
+<div
+  style={{
+    display: "flex",
+    justifyContent: "flex-end",
+    maxWidth: "1100px",
+    margin: "0 auto 20px"
+  }}
+>
+  <select
+    defaultValue=""
+    onChange={(e) => {
+      const destination = e.target.value;
+
+      if (destination) {
+        navigate(destination);
+      }
+    }}
+    style={{
+      padding: "10px 14px",
+      borderRadius: "8px",
+      border: "1px solid #cbd5e1",
+      backgroundColor: "white",
+      color: "#1e3a8a",
+      fontSize: "16px",
+      fontWeight: "600",
+      cursor: "pointer"
+    }}
+  >
+    <option value="" disabled>
+      Navigation
+    </option>
+
+    <option value="/">
+      Home
+    </option>
+
+    <option value="/customer">
+      Household Customers
+    </option>
+
+    <option value="/contact">
+      Contact Us
+    </option>
+  </select>
+</div>
+
       <h1 style={{ color: "#1e3a8a" }}>
         Corporate Laundry Solutions
       </h1>

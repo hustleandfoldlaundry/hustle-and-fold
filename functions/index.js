@@ -328,3 +328,152 @@ logger.info("Accepted status email sent", {
 
   }
 );
+
+exports.sendNewCorporateLeadEmail = onDocumentCreated(
+  {
+    document: "corporateLeads/{leadDocumentId}",
+    secrets: [resendApiKey],
+    maxInstances: 10
+  },
+  async (event) => {
+    const lead = event.data?.data();
+
+    if (!lead) {
+      logger.error(
+        "Corporate lead data was unavailable."
+      );
+      return;
+    }
+
+    const resend = new Resend(
+      resendApiKey.value()
+    );
+
+    const companyName =
+      lead.companyName || "Not provided";
+
+    const contactName =
+      lead.contactName || "Not provided";
+
+    const phone =
+      lead.phone || "Not provided";
+
+    const email =
+      lead.email || "Not provided";
+
+    const businessType =
+      lead.businessType || "Not provided";
+
+    const weeklyVolume =
+      lead.weeklyVolume || "Not provided";
+
+    const message =
+      lead.message || "Not provided";
+
+    try {
+      const {data, error} =
+        await resend.emails.send({
+          from:
+            "Hustle & Fold " +
+            "<orders@hustleandfoldlaundry.com>",
+
+          to: [
+            "hustleandfoldlaundry@gmail.com"
+          ],
+
+          replyTo: email,
+
+          subject:
+            "New Corporate Consultation Request - " +
+            companyName,
+
+          html: `
+            <h1>
+              New Corporate Consultation Request
+            </h1>
+
+            <p>
+              A new corporate consultation request
+              has been submitted.
+            </p>
+
+            <p>
+              <strong>Company Name:</strong>
+              ${companyName}
+            </p>
+
+            <p>
+              <strong>Contact Name:</strong>
+              ${contactName}
+            </p>
+
+            <p>
+              <strong>Phone Number:</strong>
+              ${phone}
+            </p>
+
+            <p>
+              <strong>Email:</strong>
+              ${email}
+            </p>
+
+            <p>
+              <strong>Business Type:</strong>
+              ${businessType}
+            </p>
+
+            <p>
+              <strong>
+                Estimated Weekly Volume:
+              </strong>
+              ${weeklyVolume}
+            </p>
+
+            <p>
+              <strong>Laundry Needs:</strong>
+            </p>
+
+            <p>
+              ${message}
+            </p>
+
+            <p>
+              Open the Hustle & Fold Admin
+              Dashboard to review and follow up
+              with this lead.
+            </p>
+          `
+        });
+
+      if (error) {
+        throw new Error(
+          `Resend error: ${JSON.stringify(error)}`
+        );
+      }
+
+      logger.info(
+        "New corporate lead email sent.",
+        {
+          leadId:
+            event.params.leadDocumentId,
+          companyName,
+          customerEmail: email,
+          emailId: data?.id
+        }
+      );
+    } catch (error) {
+      logger.error(
+        "Corporate lead email failed.",
+        {
+          leadId:
+            event.params.leadDocumentId,
+          companyName,
+          error:
+            error?.message || String(error)
+        }
+      );
+
+      throw error;
+    }
+  }
+);

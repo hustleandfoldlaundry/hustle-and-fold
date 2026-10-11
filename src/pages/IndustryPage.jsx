@@ -331,7 +331,8 @@ return (
     marginTop: "40px",
     padding: "30px",
     backgroundColor: "#f8fafc",
-    borderRadius: "12px"
+    borderRadius: "12px",
+    textAlign: "center"
   }}
 >
 
