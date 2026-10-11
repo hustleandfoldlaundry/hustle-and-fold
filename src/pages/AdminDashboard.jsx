@@ -48,7 +48,16 @@ if (!isLoggedIn) {
 
   const [corporateLeads, setCorporateLeads] = useState([]);
   const navigate = useNavigate();
-  
+  const [showCorporateCustomerForm, setShowCorporateCustomerForm] =
+  useState(false);
+  const [corporateCustomerForm, setCorporateCustomerForm] = useState({
+    companyName: "",
+    contactName: "",
+    email: "",
+    phone: "",
+    businessType: "",
+    businessAddress: ""
+  });
 
   async function loadOrders() {
     try {
@@ -674,7 +683,7 @@ if (customerLogoFile) {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(8, 1fr)",
+            gridTemplateColumns: "repeat(7, 1fr)",
             gap: "10px"
           }}
         >
@@ -684,8 +693,8 @@ if (customerLogoFile) {
             "Services",
             "Customers",
             "Corporate Leads",
-            "Messages",
-            "Settings"
+            "Corporate Customers",
+            "Messages"
           ].map((label) => (
             <button
               key={label}
@@ -724,13 +733,46 @@ if (customerLogoFile) {
             </button>
           ))}
 
-          <button
-            style={topButton("Refresh")}
-            onClick={loadOrders}
-          >
-            Refresh
-          </button>
         </div>
+
+        <div
+  style={{
+    display: "flex",
+    justifyContent: "center",
+    gap: "10px",
+    marginTop: "12px"
+  }}
+>
+
+<button
+  onClick={() => setActiveTab("Settings")}
+  style={{
+    marginLeft: "10px",
+    padding: "8px 14px",
+    borderRadius: "6px",
+    border: "none",
+    backgroundColor: "#2563eb",
+    color: "white",
+    cursor: "pointer"
+  }}
+>
+  Settings
+</button>
+
+<button
+  onClick={loadOrders}
+  style={{
+    marginLeft: "10px",
+    padding: "8px 14px",
+    borderRadius: "6px",
+    border: "none",
+    backgroundColor: "#16a34a",
+    color: "white",
+    cursor: "pointer"
+  }}
+>
+  Refresh
+</button>
 
 <button
   onClick={() => {
@@ -749,6 +791,7 @@ if (customerLogoFile) {
 >
   Logout
 </button>
+</div>
 
         <div
           style={{
@@ -993,8 +1036,6 @@ if (customerLogoFile) {
             {lead.weeklyVolume}
           </p>
 
-console.log("Lead Data:", lead);
-
           <p>
   <strong>Last Contact:</strong>{" "}
   {lead.lastContactDate || "Not set"}
@@ -1108,6 +1149,156 @@ console.log("Lead Data:", lead);
         </div>
       ))
     )}
+  </div>
+)}
+
+{activeTab === "Corporate Customers" && (
+  <div style={{ marginTop: "20px" }}>
+    <h2>Corporate Customers</h2>
+
+    <button
+      onClick={() => {
+        setShowCorporateCustomerForm(true);
+      }}
+      style={{
+        padding: "10px 16px",
+        borderRadius: "8px",
+        border: "none",
+        backgroundColor: "#2563eb",
+        color: "white",
+        cursor: "pointer"
+      }}
+    >
+      + Create Corporate Customer
+    </button>
+
+{showCorporateCustomerForm && (
+  <div
+    style={{
+      maxWidth: "600px",
+      margin: "20px auto",
+      padding: "25px",
+      backgroundColor: "white",
+      borderRadius: "12px",
+      boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
+    }}
+  >
+    <h3>Create Corporate Customer</h3>
+
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        marginTop: "20px"
+      }}
+    >
+      <input
+  type="text"
+  placeholder="Company Name"
+  value={corporateCustomerForm.companyName}
+  onChange={(e) =>
+    setCorporateCustomerForm({
+      ...corporateCustomerForm,
+      companyName: e.target.value
+    })
+  }
+/>
+
+<input
+  type="text"
+  placeholder="Primary Contact Name"
+  value={corporateCustomerForm.contactName}
+  onChange={(e) =>
+    setCorporateCustomerForm({
+      ...corporateCustomerForm,
+      contactName: e.target.value
+    })
+  }
+/>
+
+<input
+  type="email"
+  placeholder="Primary Contact Email"
+  value={corporateCustomerForm.email}
+  onChange={(e) =>
+    setCorporateCustomerForm({
+      ...corporateCustomerForm,
+      email: e.target.value
+    })
+  }
+/>
+
+<input
+  type="tel"
+  placeholder="Phone Number"
+  value={corporateCustomerForm.phone}
+  onChange={(e) =>
+    setCorporateCustomerForm({
+      ...corporateCustomerForm,
+      phone: e.target.value
+    })
+  }
+/>  
+
+<input
+  type="text"
+  placeholder="Business Type"
+  value={corporateCustomerForm.businessType}
+  onChange={(e) =>
+    setCorporateCustomerForm({
+      ...corporateCustomerForm,
+      businessType: e.target.value
+    })
+  }
+/>
+
+<input
+  type="text"
+  placeholder="Business Address"
+  value={corporateCustomerForm.businessAddress}
+  onChange={(e) =>
+    setCorporateCustomerForm({
+      ...corporateCustomerForm,
+      businessAddress: e.target.value
+    })
+  }
+/>
+
+      <button
+        type="button"
+        style={{
+          padding: "10px 16px",
+          borderRadius: "8px",
+          border: "none",
+          backgroundColor: "#16a34a",
+          color: "white",
+          cursor: "pointer"
+        }}
+      >
+        Create Corporate Customer
+      </button>
+
+      <button
+        type="button"
+        onClick={() =>
+          setShowCorporateCustomerForm(false)
+        }
+        style={{
+          padding: "10px 16px",
+          borderRadius: "8px",
+          border: "1px solid #cbd5e1",
+          backgroundColor: "white",
+          color: "#334155",
+          cursor: "pointer"
+        }}
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
+
   </div>
 )}
 
