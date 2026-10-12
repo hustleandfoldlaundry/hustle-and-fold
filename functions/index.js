@@ -4,10 +4,24 @@ const {
 } = require("firebase-functions/v2/firestore");
 
 const {
+
+ onCall, HttpsError
+
+} = require("firebase-functions/v2/https");
+
+const {
   defineSecret
 } = require("firebase-functions/params");
 
 const logger = require("firebase-functions/logger");
+
+const {initializeApp} = require("firebase-admin/app");
+
+const {getAuth} = require("firebase-admin/auth");
+
+const {getFirestore} = require("firebase-admin/firestore");
+
+initializeApp();
 
 const {Resend} = require("resend");
 
@@ -475,5 +489,168 @@ exports.sendNewCorporateLeadEmail = onDocumentCreated(
 
       throw error;
     }
+  }
+);
+
+exports.sendCorporateCustomerInvite = onCall(
+  {
+    secrets: [resendApiKey],
+    maxInstances: 10
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError(
+        "unauthenticated",
+        "You must be signed in."
+      );
+    }
+
+    const db = getFirestore();
+
+    const adminSnapshot = await db
+      .collection("admins")
+      .doc(request.auth.uid)
+      .get();
+
+    if (
+      !adminSnapshot.exists ||
+      adminSnapshot.data()?.active !== true
+    ) {
+      throw new HttpsError(
+        "permission-denied",
+        "Only an active administrator can send invitations."
+      );
+    }
+
+    const customerId = request.data?.customerId;
+
+    if (!customerId) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Corporate customer ID is required."
+      );
+    }
+
+    const customerSnapshot = await db
+      .collection("corporateCustomers")
+      .doc(customerId)
+      .get();
+
+    if (!customerSnapshot.exists) {
+      throw new HttpsError(
+        "not-found",
+        "Corporate customer was not found."
+      );
+    }
+
+    const customer = customerSnapshot.data();
+
+    if (!customer.email) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Corporate customer email is missing."
+      );
+    }
+
+    const auth = getAuth();
+
+let userRecord;
+
+try {
+  userRecord = await auth.getUserByEmail(
+    customer.email
+  );
+} catch (error) {
+  if (error.code !== "auth/user-not-found") {
+    throw error;
+  }
+
+  userRecord = await auth.createUser({
+    email: customer.email,
+    displayName:
+      customer.contactName ||
+      customer.companyName ||
+      "Corporate Customer",
+    emailVerified: false,
+    disabled: false
+  });
+}
+
+await auth.setCustomUserClaims(
+  userRecord.uid,
+  {
+    role: "corporateCustomer",
+    corporateCustomerId: customerId
+  }
+);
+
+const setupLink =
+  await auth.generatePasswordResetLink(
+    customer.email,
+    {
+      url:
+        "https://www.hustleandfoldlaundry.com/corporate/login"
+    }
+  );
+
+  const resend = new Resend(resendApiKey.value());
+
+const {data, error} = await resend.emails.send({
+  from:
+    "Hustle & Fold <orders@hustleandfoldlaundry.com>",
+
+  to: [customer.email],
+
+  subject:
+    "Set Up Your Hustle & Fold Corporate Account",
+
+  text: `
+Hello ${customer.contactName || "Corporate Customer"},
+
+Hustle & Fold has created a corporate customer account for ${customer.companyName || "your company"}.
+
+Use the secure link below to create your password:
+
+${setupLink}
+
+After creating your password, you will be able to sign in to your Hustle & Fold Corporate Customer Portal.
+
+If you were not expecting this invitation, please contact Hustle & Fold.
+
+Thank you,
+Hustle & Fold Laundry Services
+  `
+});
+
+if (error) {
+  throw new HttpsError(
+    "internal",
+    `Resend error: ${JSON.stringify(error)}`
+  );
+}
+
+await customerSnapshot.ref.update({
+  authUid: userRecord.uid,
+  accountStatus: "Invitation Sent",
+  invitationSentAt: new Date().toISOString(),
+  invitationEmailId: data?.id || ""
+});
+
+logger.info(
+  "Corporate customer invitation sent.",
+  {
+    customerId,
+    authUid: userRecord.uid,
+    email: customer.email,
+    emailId: data?.id
+  }
+);
+
+    return {
+      success: true,
+      customerId,
+      email: customer.email,
+      accountStatus: "Invitation Sent"
+    };
   }
 );

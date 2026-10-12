@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { db, storage } from "../firebase";
-import { collection, getDocs, doc, updateDoc, setDoc, getDoc, deleteDoc } from "@firebase/firestore/lite";import { useNavigate } from "react-router-dom";
+import { db, storage, functions } from "../firebase";
+import { httpsCallable } from "firebase/functions";
+import { collection, addDoc, getDocs, doc, updateDoc, setDoc, getDoc, deleteDoc } from "@firebase/firestore/lite";import { useNavigate } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import AdminSchedule from "./AdminSchedule";
@@ -58,6 +59,85 @@ if (!isLoggedIn) {
     businessType: "",
     businessAddress: ""
   });
+const [corporateCustomers, setCorporateCustomers] = useState([]);
+
+async function createCorporateCustomer() {
+
+if (
+  !corporateCustomerForm.companyName.trim() ||
+  !corporateCustomerForm.contactName.trim() ||
+  !corporateCustomerForm.email.trim() ||
+  !corporateCustomerForm.phone.trim() ||
+  !corporateCustomerForm.businessType.trim() ||
+  !corporateCustomerForm.businessAddress.trim()
+) {
+  alert("Please complete all corporate customer fields.");
+  return;
+}
+
+  try {
+    await addDoc(
+      collection(db, "corporateCustomers"),
+      {
+        companyName: corporateCustomerForm.companyName,
+        contactName: corporateCustomerForm.contactName,
+        email: corporateCustomerForm.email,
+        phone: corporateCustomerForm.phone,
+        businessType: corporateCustomerForm.businessType,
+        businessAddress: corporateCustomerForm.businessAddress,
+        status: "Active",
+        accountStatus: "Pending Invitation",
+        createdAt: new Date().toISOString()
+      }
+    );
+
+    alert("Corporate customer created successfully.");
+
+    setCorporateCustomerForm({
+      companyName: "",
+      contactName: "",
+      email: "",
+      phone: "",
+      businessType: "",
+      businessAddress: ""
+    });
+
+    setShowCorporateCustomerForm(false);
+  } catch (error) {
+    console.error(
+      "Error creating corporate customer:",
+      error
+    );
+
+    alert(
+      "Unable to create corporate customer. Please try again."
+    );
+  }
+}
+  
+async function loadCorporateCustomers() {
+
+ try {
+
+ const snapshot = await getDocs(collection(db, "corporateCustomers"));
+
+ const data = snapshot.docs.map((docItem) => ({
+
+ id: docItem.id,
+
+ ...docItem.data()
+
+ }));
+
+ setCorporateCustomers(data);
+
+ } catch (error) {
+
+ console.error("Error loading corporate customers:", error);
+
+ }
+
+}
 
   async function loadOrders() {
     try {
@@ -126,6 +206,7 @@ setCorporateLeads(corporateData);
 
   useEffect(() => {
     loadOrders();
+    loadCorporateCustomers();
   }, []);
 
   useEffect(() => {
@@ -1267,6 +1348,7 @@ if (customerLogoFile) {
 
       <button
         type="button"
+        onClick={createCorporateCustomer}
         style={{
           padding: "10px 16px",
           borderRadius: "8px",
@@ -1299,6 +1381,43 @@ if (customerLogoFile) {
   </div>
 )}
 
+{corporateCustomers.length === 0 ? (
+
+ <p>No corporate customers found.</p>
+
+) : (
+
+ corporateCustomers.map((customer) => (
+
+<div key={customer.id} style={{ backgroundColor: "white", padding: "20px", marginTop: "15px", borderRadius: "12px", boxShadow: "0 4px 10px rgba(0,0,0,0.08)", textAlign: "left" }}>
+ <h3>{customer.companyName}</h3>
+
+ <p>Contact: {customer.contactName}</p>
+
+ <p>Email: {customer.email}</p>
+
+ <p>Phone: {customer.phone}</p>
+
+ <p>Business Type: {customer.businessType}</p>
+
+ <p>Business Address: {customer.businessAddress}</p>
+
+<p>
+
+ <strong>Account Status:</strong>{" "}
+
+ <span style={{ backgroundColor: "#f59e0b", color: "white", padding: "4px 10px", borderRadius: "999px", fontWeight: "600" }}>
+
+ {customer.accountStatus || "Pending Invitation"}
+
+ </span>
+
+</p>
+ </div>
+
+ ))
+
+)}
   </div>
 )}
 
