@@ -139,6 +139,28 @@ async function loadCorporateCustomers() {
 
 }
 
+async function sendCorporateCustomerInvite(customerId) {
+
+ try {
+
+ const sendInvite = httpsCallable(functions, "sendCorporateCustomerInvite");
+
+ await sendInvite({ customerId });
+
+ alert("Login invitation sent successfully.");
+
+ await loadCorporateCustomers();
+
+ } catch (error) {
+
+ console.error("Error sending corporate customer invitation:", error);
+
+ alert(error?.message || "Unable to send the login invitation.");
+
+ }
+
+}
+
   async function loadOrders() {
     try {
       const snapshot = await getDocs(collection(db, "orders"));
@@ -1413,6 +1435,37 @@ if (customerLogoFile) {
  </span>
 
 </p>
+
+<button
+
+ type="button"
+
+ onClick={() => sendCorporateCustomerInvite(customer.id)}
+
+ style={{
+
+ marginTop: "10px",
+
+ padding: "10px 16px",
+
+ borderRadius: "8px",
+
+ border: "none",
+
+ backgroundColor: "#2563eb",
+
+ color: "white",
+
+ cursor: "pointer"
+
+ }}
+
+>
+
+ Send Login Invitation
+
+</button>
+
  </div>
 
  ))

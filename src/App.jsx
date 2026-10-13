@@ -20,6 +20,8 @@ import CustomerDashboard from "./pages/CustomerDashboard";
 import ForgotPassword from "./pages/ForgotPassword";
 import OrderDetails from "./pages/OrderDetails";
 import Corporate from "./pages/Corporate";
+import CorporateCustomerLogin from "./pages/CorporateCustomerLogin";
+import CorporateCustomerDashboard from "./pages/CorporateCustomerDashboard";
 import IndustryPage from "./pages/IndustryPage";
 
 
@@ -49,6 +51,9 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/order-details" element={<OrderDetails />} />
         <Route path="/corporate" element={<Corporate />} />
+        <Route path="/corporate/login" element={<CorporateCustomerLogin />} />
+        <Route path="/corporate/login" element={<CorporateCustomerLogin />} />
+        <Route path="/corporate/dashboard" element={<CorporateCustomerDashboard />} />
         <Route path="/corporate/:industry" element={<IndustryPage />} />      </Routes>
     </BrowserRouter>
   );
