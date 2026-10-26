@@ -1,30 +1,18 @@
-const {
-  onDocumentCreated,
-  onDocumentUpdated
-} = require("firebase-functions/v2/firestore");
-
-const {
-
- onCall, HttpsError
-
-} = require("firebase-functions/v2/https");
-
-const {
-  defineSecret
-} = require("firebase-functions/params");
-
+const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const {onSchedule} = require("firebase-functions/v2/scheduler");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { defineSecret } = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
-
 const {initializeApp} = require("firebase-admin/app");
-
 const {getAuth} = require("firebase-admin/auth");
-
 const {getFirestore} = require("firebase-admin/firestore");
+const {getStorage} = require("firebase-admin/storage");
+const {PDFDocument, StandardFonts, rgb} = require("pdf-lib");
+const {Buffer} = require("node:buffer");
 
-initializeApp();
+initializeApp({ storageBucket: "hustleandfold-4908a.firebasestorage.app" });
 
 const {Resend} = require("resend");
-
 const resendApiKey = defineSecret("RESEND_API_KEY");
 
 exports.sendNewOrderEmail = onDocumentCreated(
@@ -42,31 +30,14 @@ exports.sendNewOrderEmail = onDocumentCreated(
     }
 
     const resend = new Resend(resendApiKey.value());
-
-    const orderNumber =
-      order.orderId || event.params.orderDocumentId;
-
-    const customerName =
-      order.name || "Not provided";
-
-    const customerEmail =
-      order.email || "Not provided";
-
-    const customerPhone =
-      order.phone || "Not provided";
-
-    const pickupDate =
-      order.pickupDate || "Not provided";
-
-    const pickupTime =
-      order.pickupTime || "Not provided";
-
-    const estimatedDelivery =
-      order.estimatedDelivery || "Not provided";
-
-    const orderTotal = Number(
-      order.grandTotal || 0
-    ).toFixed(2);
+    const orderNumber = order.orderId || event.params.orderDocumentId;
+    const customerName = order.name || "Not provided";
+    const customerEmail = order.email || "Not provided";
+    const customerPhone = order.phone || "Not provided";
+    const pickupDate = order.pickupDate || "Not provided";
+    const pickupTime = order.pickupTime || "Not provided";
+    const estimatedDelivery = order.estimatedDelivery || "Not provided";
+    const orderTotal = Number( order.grandTotal || 0 ).toFixed(2);
 
     try {
       const {data, error} = await resend.emails.send({
@@ -652,5 +623,593 @@ logger.info(
       email: customer.email,
       accountStatus: "Invitation Sent"
     };
+  }
+);
+
+exports.sendNewCorporateContractEmail = onDocumentCreated(
+  {
+    document: "corporateContracts/{contractId}",
+    region: "us-west2",
+    secrets: [resendApiKey],
+    maxInstances: 10
+  },
+  async (event) => {
+    const contract = event.data?.data();
+
+    if (!contract) {
+      logger.error(
+        "Corporate contract data was unavailable."
+      );
+      return;
+    }
+
+    const customerId = contract.corporateCustomerId;
+
+    if (!customerId) {
+      logger.error(
+        "Corporate customer ID was missing.",
+        {
+          contractId: event.params.contractId
+        }
+      );
+      return;
+    }
+
+    const db = getFirestore();
+
+    const customerSnapshot = await db
+      .collection("corporateCustomers")
+      .doc(customerId)
+      .get();
+
+    if (!customerSnapshot.exists) {
+      logger.error(
+        "Corporate customer was not found.",
+        {
+          customerId,
+          contractId: event.params.contractId
+        }
+      );
+      return;
+    }
+
+    const customer = customerSnapshot.data();
+
+    if (!customer.email) {
+      logger.error(
+        "Corporate customer email was missing.",
+        {
+          customerId,
+          contractId: event.params.contractId
+        }
+      );
+      return;
+    }
+
+    const resend = new Resend(
+      resendApiKey.value()
+    );
+
+    const {data, error} =
+      await resend.emails.send({
+        from:
+          "Hustle & Fold " +
+          "<orders@hustleandfoldlaundry.com>",
+
+        to: [customer.email],
+
+        subject:
+          "New Contract Ready for Review - " +
+          contract.title,
+
+        text: `
+Hello ${customer.contactName || "Corporate Customer"},
+
+A new contract is ready for review in your Hustle & Fold Corporate Customer Portal.
+
+Company:
+${customer.companyName || "Not provided"}
+
+Contract:
+${contract.title || "Corporate Service Agreement"}
+
+Effective Date:
+${contract.effectiveDate || "Not provided"}
+
+Expiration Date:
+${contract.expirationDate || "None"}
+
+Contract Status:
+${contract.status || "Pending Signature"}
+
+Sign in to review and sign your contract:
+
+https://www.hustleandfoldlaundry.com/corporate/login
+
+Thank you,
+Hustle & Fold Laundry Services
+        `
+      });
+
+    if (error) {
+      throw new Error(
+        `Resend error: ${JSON.stringify(error)}`
+      );
+    }
+
+    logger.info(
+      "New corporate contract email sent.",
+      {
+        contractId: event.params.contractId,
+        customerId,
+        customerEmail: customer.email,
+        emailId: data?.id
+      }
+    );
+  }
+);
+
+async function createSignedContractPdf(
+  contractId,
+  contract,
+  companyName
+) {
+  const pdfDocument = await PDFDocument.create();
+
+  const regularFont = await pdfDocument.embedFont(
+    StandardFonts.Helvetica
+  );
+
+  const boldFont = await pdfDocument.embedFont(
+    StandardFonts.HelveticaBold
+  );
+
+  let page = pdfDocument.addPage([612, 792]);
+  const margin = 50;
+  const pageWidth = page.getWidth();
+  const maxWidth = pageWidth - margin * 2;
+  const bodySize = 11;
+  const lineHeight = 17;
+  let y = 735;
+
+  function cleanText(value) {
+    return String(value || "")
+      .replace(/[‘’]/g, "'")
+      .replace(/[“”]/g, "\"")
+      .replace(/[–—]/g, "-");
+  }
+
+  function addPageWhenNeeded() {
+    if (y > 65) {
+      return;
+    }
+
+    page = pdfDocument.addPage([612, 792]);
+    y = 735;
+  }
+
+  function drawLine(text, options = {}) {
+    addPageWhenNeeded();
+
+    const font = options.bold ?
+      boldFont :
+      regularFont;
+
+    const size = options.size || bodySize;
+    const color = options.color || rgb(0.12, 0.18, 0.3);
+
+    page.drawText(cleanText(text), {
+      x: margin,
+      y,
+      size,
+      font,
+      color
+    });
+
+    y -= options.spacing || lineHeight;
+  }
+
+  function drawWrappedText(text) {
+    const words = cleanText(text).split(/\s+/);
+    let line = "";
+
+    words.forEach((word) => {
+      const testLine = line ?
+        `${line} ${word}` :
+        word;
+
+      const width = regularFont.widthOfTextAtSize(
+        testLine,
+        bodySize
+      );
+
+      if (width > maxWidth && line) {
+        drawLine(line);
+        line = word;
+      } else {
+        line = testLine;
+      }
+    });
+
+    if (line) {
+      drawLine(line);
+    }
+  }
+
+  drawLine(
+    "HUSTLE & FOLD LAUNDRY SERVICES",
+    {
+      bold: true,
+      size: 18,
+      spacing: 28,
+      color: rgb(0.12, 0.23, 0.54)
+    }
+  );
+
+  drawLine(
+    "SIGNED CORPORATE SERVICE AGREEMENT",
+    {
+      bold: true,
+      size: 15,
+      spacing: 30
+    }
+  );
+
+  drawLine(`Company: ${companyName}`);
+  drawLine(`Contract: ${contract.title}`);
+  drawLine(`Contract ID: ${contractId}`);
+  drawLine(
+    `Effective Date: ${contract.effectiveDate || "Not provided"}`
+  );
+  drawLine(
+    `Expiration Date: ${contract.expirationDate || "None"}`
+  );
+  drawLine("Status: Signed", {
+    bold: true,
+    color: rgb(0.09, 0.55, 0.25),
+    spacing: 28
+  });
+
+  drawLine("CONTRACT TERMS", {
+    bold: true,
+    size: 13,
+    spacing: 23
+  });
+
+  drawWrappedText(
+    contract.terms || "No contract terms were recorded."
+  );
+
+  y -= 18;
+
+  drawLine("ELECTRONIC SIGNATURE", {
+    bold: true,
+    size: 13,
+    spacing: 23
+  });
+
+  drawLine(
+    `Signed By: ${contract.signedByName || "Not recorded"}`
+  );
+
+  drawLine(
+    `Signer Email: ${contract.signedByEmail || "Not recorded"}`
+  );
+
+  drawLine(
+    `Signed Date: ${contract.signedAt || "Not recorded"}`
+  );
+
+  drawLine(
+    "The signer confirmed that the typed name above " +
+    "was intended to serve as an electronic signature."
+  );
+
+  const pdfBytes = await pdfDocument.save();
+
+  const storagePath =
+    `corporate-contracts/${contract.corporateCustomerId}/` +
+    `${contractId}-signed.pdf`;
+
+  const bucket = getStorage().bucket();
+  const file = bucket.file(storagePath);
+
+  await file.save(Buffer.from(pdfBytes), {
+    metadata: {
+      contentType: "application/pdf",
+      cacheControl: "private, max-age=0"
+    }
+  });
+
+  return storagePath;
+}
+
+exports.sendSignedCorporateContractEmail = onDocumentUpdated(
+  {
+    document: "corporateContracts/{contractId}",
+    region: "us-west2",
+    secrets: [resendApiKey],
+    maxInstances: 10
+  },
+  async (event) => {
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+
+    if (!before || !after) {
+      logger.error(
+        "Corporate contract update data was unavailable."
+      );
+      return;
+    }
+
+    if (
+      before.status === "Signed" ||
+      after.status !== "Signed"
+    ) {
+      return;
+    }
+
+    const db = getFirestore();
+
+    let companyName = "Not provided";
+
+    if (after.corporateCustomerId) {
+      const customerSnapshot = await db
+        .collection("corporateCustomers")
+        .doc(after.corporateCustomerId)
+        .get();
+
+      if (customerSnapshot.exists) {
+        companyName =
+          customerSnapshot.data()?.companyName ||
+          "Not provided";
+      }
+    }
+
+const signedPdfStoragePath =
+  await createSignedContractPdf(
+    event.params.contractId,
+    after,
+    companyName
+  );
+
+await event.data.after.ref.update({
+  signedPdfStoragePath,
+  signedPdfGeneratedAt:
+    new Date().toISOString()
+});
+
+
+    const resend = new Resend(
+      resendApiKey.value()
+    );
+
+    const {data, error} =
+      await resend.emails.send({
+        from:
+          "Hustle & Fold " +
+          "<orders@hustleandfoldlaundry.com>",
+
+        to: [
+          "hustleandfoldlaundry@gmail.com"
+        ],
+
+        subject:
+          "Corporate Contract Signed - " +
+          (after.title || companyName),
+
+        text: `
+A corporate contract has been signed.
+
+Company:
+${companyName}
+
+Contract:
+${after.title || "Corporate Service Agreement"}
+
+Signed By:
+${after.signedByName || "Not recorded"}
+
+Signer Email:
+${after.signedByEmail || "Not recorded"}
+
+Signed Date:
+${after.signedAt || "Not recorded"}
+
+Effective Date:
+${after.effectiveDate || "Not provided"}
+
+Expiration Date:
+${after.expirationDate || "None"}
+
+Open the Hustle & Fold Admin Dashboard to review the signed contract.
+`
+});
+
+if (error) {
+ throw new Error(
+ "Resend error: " + JSON.stringify(error)
+ );
+}
+
+logger.info(
+
+ "Signed corporate contract email sent.",
+
+ {
+ contractId: event.params.contractId,
+ corporateCustomerId: after.corporateCustomerId || "",
+ signerEmail: after.signedByEmail || "",
+ emailId: data?.id
+ }
+);
+}
+);
+
+exports.sendCorporateContractRenewalReminders = onSchedule(
+  {
+    schedule: "every day 08:00",
+    timeZone: "America/Los_Angeles",
+    region: "us-west2",
+    secrets: [resendApiKey]
+  },
+  async () => {
+    const db = getFirestore();
+    const today = new Date();
+
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(
+      today.getDate() + 30
+    );
+
+    const contractsSnapshot = await db
+      .collection("corporateContracts")
+      .get();
+
+    let remindersSent = 0;
+
+    for (const contractDocument of contractsSnapshot.docs) {
+      const contract = contractDocument.data();
+
+      if (
+        contract.status !== "Signed" ||
+        !contract.expirationDate
+      ) {
+        continue;
+      }
+
+      const expirationDate = new Date(
+        contract.expirationDate + "T23:59:59"
+      );
+
+      const isInRenewalWindow =
+        expirationDate >= today &&
+        expirationDate <= thirtyDaysFromNow;
+
+      const reminderAlreadySent =
+        contract.renewalReminderExpirationDate ===
+        contract.expirationDate;
+
+      if (
+        !isInRenewalWindow ||
+        reminderAlreadySent
+      ) {
+        continue;
+      }
+
+      let companyName = "Not provided";
+      let contactName = "Corporate Customer";
+      let customerEmail = "";
+
+      if (contract.corporateCustomerId) {
+        const customerSnapshot = await db
+          .collection("corporateCustomers")
+          .doc(contract.corporateCustomerId)
+          .get();
+
+        if (customerSnapshot.exists) {
+          const customer = customerSnapshot.data();
+
+          companyName =
+            customer.companyName ||
+            "Not provided";
+
+          contactName =
+            customer.contactName ||
+            "Corporate Customer";
+
+          customerEmail =
+            customer.email || "";
+        }
+      }
+
+      const resend = new Resend(
+        resendApiKey.value()
+      );
+
+      const {data, error} =
+        await resend.emails.send({
+          from:
+            "Hustle & Fold " +
+            "<orders@hustleandfoldlaundry.com>",
+
+          to: [
+            "hustleandfoldlaundry@gmail.com"
+          ],
+
+          subject:
+            "Contract Renewal Reminder - " +
+            companyName,
+
+          text: `
+A corporate contract is approaching its expiration date.
+
+Company:
+${companyName}
+
+Primary Contact:
+${contactName}
+
+Customer Email:
+${customerEmail || "Not provided"}
+
+Contract:
+${contract.title || "Corporate Service Agreement"}
+
+Expiration Date:
+${contract.expirationDate}
+
+Status:
+${contract.status}
+
+Please review the contract and prepare a renewal agreement for the customer.
+
+Open the Hustle & Fold Admin Dashboard for more information.
+          `
+        });
+
+      if (error) {
+        logger.error(
+          "Corporate renewal reminder email failed.",
+          {
+            contractId: contractDocument.id,
+            error
+          }
+        );
+
+        continue;
+      }
+
+      await contractDocument.ref.update({
+        renewalReminderSentAt:
+          new Date().toISOString(),
+
+        renewalReminderExpirationDate:
+          contract.expirationDate,
+
+        renewalReminderEmailId:
+          data?.id || ""
+      });
+
+      remindersSent += 1;
+
+      logger.info(
+        "Corporate renewal reminder sent.",
+        {
+          contractId: contractDocument.id,
+          companyName,
+          expirationDate:
+            contract.expirationDate,
+          emailId: data?.id
+        }
+      );
+    }
+
+    logger.info(
+      "Corporate renewal reminder check completed.",
+      {
+        remindersSent
+      }
+    );
   }
 );

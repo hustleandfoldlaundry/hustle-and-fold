@@ -49,17 +49,13 @@ if (!isLoggedIn) {
 
   const [corporateLeads, setCorporateLeads] = useState([]);
   const navigate = useNavigate();
-  const [showCorporateCustomerForm, setShowCorporateCustomerForm] =
-  useState(false);
-  const [corporateCustomerForm, setCorporateCustomerForm] = useState({
-    companyName: "",
-    contactName: "",
-    email: "",
-    phone: "",
-    businessType: "",
-    businessAddress: ""
-  });
-const [corporateCustomers, setCorporateCustomers] = useState([]);
+  const [showCorporateCustomerForm, setShowCorporateCustomerForm] = useState(false);
+  const [corporateCustomerForm, setCorporateCustomerForm] = useState({ companyName: "", contactName: "", email: "", phone: "", businessType: "", businessAddress: "" });
+  const [corporateCustomers, setCorporateCustomers] = useState([]);
+  const [contractCustomerId, setContractCustomerId] = useState(null);
+  const [corporateContracts, setCorporateContracts] = useState([]);
+  const [showSignedContracts, setShowSignedContracts] = useState({});
+  const [contractForm, setContractForm] = useState({ title: "", effectiveDate: "", expirationDate: "", terms: "" });
 
 async function createCorporateCustomer() {
 
@@ -116,60 +112,152 @@ if (
 }
   
 async function loadCorporateCustomers() {
-
  try {
-
  const snapshot = await getDocs(collection(db, "corporateCustomers"));
-
  const data = snapshot.docs.map((docItem) => ({
-
- id: docItem.id,
-
- ...docItem.data()
-
+    id: docItem.id,
+     ...docItem.data()
  }));
 
  setCorporateCustomers(data);
-
  } catch (error) {
-
  console.error("Error loading corporate customers:", error);
-
  }
+}
 
+async function loadCorporateContracts() {
+ try {
+ const snapshot = await getDocs(collection(db, "corporateContracts"));
+ const data = snapshot.docs.map((docItem) => ({
+    id: docItem.id,
+    ...docItem.data()
+ }));
+
+ setCorporateContracts(data);
+ } catch (error) {
+ console.error("Error loading corporate contracts:", error);
+ }
 }
 
 async function sendCorporateCustomerInvite(customerId) {
-
  try {
-
  const sendInvite = httpsCallable(functions, "sendCorporateCustomerInvite");
-
  await sendInvite({ customerId });
-
  alert("Login invitation sent successfully.");
-
  await loadCorporateCustomers();
-
  } catch (error) {
-
  console.error("Error sending corporate customer invitation:", error);
-
  alert(error?.message || "Unable to send the login invitation.");
+ }
+}
 
+async function downloadSignedContract(contract) {
+ try {
+ if (!contract.signedPdfStoragePath) {
+ alert("The signed PDF is not available yet.");
+ return;
  }
 
+ const pdfReference = ref(
+ storage,
+ contract.signedPdfStoragePath
+ );
+
+ const downloadUrl = await getDownloadURL(pdfReference);
+ window.open(downloadUrl, "_blank", "noopener,noreferrer");
+ } catch (error) {
+ console.error("Error downloading signed contract:", error);
+ alert("Unable to download the signed PDF. Please try again.");
+ }
+}
+
+async function saveCorporateContract(customerId) {
+ if (!contractForm.title.trim() || !contractForm.effectiveDate || !contractForm.terms.trim()) {
+ alert("Please complete the contract title, effective date, and terms.");
+ return;
+ }
+ try {
+ 
+  await addDoc(collection(db, "corporateContracts"), {
+    corporateCustomerId: customerId,
+    title: contractForm.title.trim(),
+    effectiveDate: contractForm.effectiveDate,
+    expirationDate: contractForm.expirationDate,
+    terms: contractForm.terms.trim(),
+    status: "Pending Signature",
+    signedAt: null,
+    createdAt: new Date().toISOString()
+ });
+
+ alert("Contract saved successfully.");
+ setContractForm({
+    title: "",
+    effectiveDate: "",
+    expirationDate: "",
+    terms: ""
+ });
+
+ setContractCustomerId(null);
+ } catch (error) {
+ console.error("Error saving corporate contract:", error);
+ alert("Unable to save the contract. Please try again.");
+ }
+}
+
+async function deleteCorporateContract(contract) {
+ if (contract.status === "Signed") {
+ alert("Signed contracts cannot be deleted.");
+ return;
+ }
+
+ const confirmed = window.confirm(
+ "Are you sure you want to delete this contract?"
+ );
+
+ if (!confirmed) {
+ return;
+ }
+
+ try {
+ await deleteDoc(doc(db, "corporateContracts", contract.id));
+ setCorporateContracts((currentContracts) =>
+ currentContracts.filter((item) => item.id !== contract.id)
+ );
+
+ alert("Contract deleted successfully.");
+ } catch (error) {
+ console.error("Error deleting corporate contract:", error);
+ alert("Unable to delete the contract. Please try again.");
+ }
+}
+
+function getContractLifecycleStatus(contract) {
+ if (!contract.expirationDate) {
+ return "Active";
+ }
+
+ const today = new Date();
+
+ const expiration = new Date(contract.expirationDate + "T23:59:59");
+ if (expiration < today) {
+ return "Expired";
+ }
+
+ const thirtyDaysFromNow = new Date();
+ thirtyDaysFromNow.setDate(today.getDate() + 30);
+ if (expiration <= thirtyDaysFromNow) {
+ return "Expiring Soon";
+ }
+
+ return "Active";
 }
 
   async function loadOrders() {
     try {
       const snapshot = await getDocs(collection(db, "orders"));
-
       const data = snapshot.docs.map((docItem) => {
-        const order = docItem.data();
-
-        const estimatedLbs =
-          Number(order.washFoldLbs || 0) + Number(order.foldOnlyLbs || 0);
+      const order = docItem.data();
+      const estimatedLbs = Number(order.washFoldLbs || 0) + Number(order.foldOnlyLbs || 0);
 
         return {
           id: docItem.id,
@@ -229,6 +317,7 @@ setCorporateLeads(corporateData);
   useEffect(() => {
     loadOrders();
     loadCorporateCustomers();
+    loadCorporateContracts();
   }, []);
 
   useEffect(() => {
@@ -1437,39 +1526,316 @@ if (customerLogoFile) {
 </p>
 
 <button
-
  type="button"
-
  onClick={() => sendCorporateCustomerInvite(customer.id)}
+ style={{
+  marginTop: "10px",
+  padding: "10px 16px",
+  borderRadius: "8px",
+  border: "none",
+  backgroundColor: "#2563eb",
+  color: "white",
+  cursor: "pointer"
+ }}
+>
+ Send Login Invitation
+</button>
+
+<div style={{ marginTop: "20px", paddingTop: "15px", borderTop: "1px solid #e5e7eb" }}>
+
+<h4>Contracts</h4>
+
+<div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "15px" }}>
+ <span style={{ backgroundColor: "#dc2626", color: "white", padding: "6px 12px", borderRadius: "999px", fontWeight: "600" }}>
+ Pending Signature: {corporateContracts.filter((contract) => contract.corporateCustomerId === customer.id && contract.status !== "Signed").length}
+ </span>
+ <span style={{ backgroundColor: "#16a34a", color: "white", padding: "6px 12px", borderRadius: "999px", fontWeight: "600" }}>
+ Signed: {corporateContracts.filter((contract) => contract.corporateCustomerId === customer.id && contract.status === "Signed").length}
+ </span>
+</div>
+
+<button
+ type="button"
+ onClick={() =>
+ setShowSignedContracts((prev) => ({
+ ...prev,
+ [customer.id]: !prev[customer.id]
+ }))
+ }
 
  style={{
-
- marginTop: "10px",
-
- padding: "10px 16px",
-
- borderRadius: "8px",
-
- border: "none",
-
- backgroundColor: "#2563eb",
-
- color: "white",
-
- cursor: "pointer"
-
+   marginBottom: "15px",
+   padding: "8px 14px",
+   borderRadius: "8px",
+   border: "1px solid #cbd5e1",
+   backgroundColor: "white",
+   color: "#334155",
+   cursor: "pointer",
+   fontWeight: "600"
  }}
-
 >
 
- Send Login Invitation
+ {showSignedContracts[customer.id]
+ ? "Hide Signed Contracts"
+ : "Show Signed Contracts"}
 
 </button>
 
+{corporateContracts.filter((contract) => contract.corporateCustomerId === customer.id).length === 0 ? (
+ <p>No contract has been added yet.</p>
+
+) : (
+ corporateContracts
+ .filter((contract) => contract.corporateCustomerId === customer.id && (contract.status !== "Signed" || showSignedContracts[customer.id]))
+ .sort((a, b) => (a.status === "Signed" ? 1 : 0) - (b.status === "Signed" ? 1 : 0))
+ .map((contract) => (
+ <div
+
+ key={contract.id}
+ style={{
+   marginBottom: "15px",
+   padding: "20px",
+   backgroundColor: "white",
+   borderRadius: "12px",
+   border: "1px solid #e2e8f0",
+   boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
+ }}
+>
+
+ <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "15px", flexWrap: "wrap" }}>
+ <h3 style={{ margin: "0", color: "#1e3a8a" }}>
+ {contract.title}
+ </h3>
+ <span
+ style={{
+   backgroundColor: contract.status === "Signed" ? "#16a34a" : "#dc2626",
+   color: "white",
+   padding: "5px 12px",
+   borderRadius: "999px",
+   fontWeight: "600"
+ }}
+ >
+
+ {contract.status || "Pending Signature"}
+ </span>
  </div>
 
- ))
+ {(() => {
+ const lifecycle = getContractLifecycleStatus(contract);
 
+ const lifecycleColor =
+ lifecycle === "Expired"
+ ? "#475569"
+ : lifecycle === "Expiring Soon"
+ ? "#f59e0b"
+ : "#2563eb";
+ return (
+
+ <span
+ style={{
+ display: "inline-block",
+ marginTop: "10px",
+ backgroundColor: lifecycleColor,
+ color: "white",
+ padding: "5px 12px",
+ borderRadius: "999px",
+ fontWeight: "600"
+ }}
+ >
+ {lifecycle}
+ </span>
+ );
+})()}
+
+{getContractLifecycleStatus(contract) === "Expiring Soon" && (
+ <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#fff7ed", border: "1px solid #fdba74", borderRadius: "8px", color: "#9a3412" }}>
+ <strong>Renewal Reminder</strong>
+ <p style={{ margin: "5px 0 0" }}>
+
+ This contract expires on {contract.expirationDate}. Prepare a renewal agreement for this customer.
+
+ </p>
+ </div>
+)}
+
+{getContractLifecycleStatus(contract) === "Expired" && (
+ <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#f1f5f9", border: "1px solid #94a3b8", borderRadius: "8px", color: "#334155" }}>
+ <strong>Contract Expired</strong>
+ <p style={{ margin: "5px 0 0" }}>
+
+ This contract expired on {contract.expirationDate}. A new agreement should be created before continuing service under this contract.
+
+ </p>
+ </div>
+)}
+
+ <div style={{ marginTop: "15px", color: "#475569" }}>
+
+ <p style={{ margin: "6px 0" }}>
+ <strong>Effective:</strong> {contract.effectiveDate}
+ </p>
+
+ <p style={{ margin: "6px 0" }}>
+ <strong>Expires:</strong> {contract.expirationDate || "None"}
+ </p>
+
+ </div>
+
+ {contract.status !== "Signed" && (
+
+ <p style={{ marginTop: "15px", color: "#dc2626", fontWeight: "600" }}>
+
+ Awaiting customer signature
+
+ </p>
+
+)}
+
+{contract.status !== "Signed" && (
+
+ <button
+ type="button"
+ onClick={() => deleteCorporateContract(contract)}
+ style={{
+   marginTop: "10px",
+   padding: "10px 16px",
+   borderRadius: "8px",
+   border: "none",
+   backgroundColor: "#dc2626",
+   color: "white",
+   cursor: "pointer",
+   fontWeight: "600"
+ }}
+ >
+
+ Delete Contract
+
+ </button>
+)}
+
+ {contract.status === "Signed" && (
+ <div style={{ marginTop: "15px", paddingTop: "15px", borderTop: "1px solid #e2e8f0" }}>
+
+ <p style={{ margin: "6px 0" }}>
+ <strong>Signed By:</strong> {contract.signedByName || "Not recorded"}
+ </p>
+
+ <p style={{ margin: "6px 0" }}>
+ <strong>Signer Email:</strong> {contract.signedByEmail || "Not recorded"}
+ </p>
+
+ <p style={{ margin: "6px 0" }}>
+ <strong>Signed Date:</strong>{" "}
+ {contract.signedAt
+ ? new Date(contract.signedAt).toLocaleString()
+ : "Not recorded"}
+ </p>
+
+ </div>
+ )}
+
+ {contract.status === "Signed" && contract.signedPdfStoragePath && (
+
+<button
+ type="button"
+ onClick={() => downloadSignedContract(contract)}
+ style={{
+   marginTop: "15px",
+   padding: "10px 16px",
+   borderRadius: "8px",
+   border: "none",
+   backgroundColor: "#2563eb",
+   color: "white",
+   cursor: "pointer",
+   fontWeight: "600"
+ }}
+ >
+
+ Download Signed PDF
+
+ </button>
+
+ )}
+
+</div>
+ ))
+)}
+
+<button
+ type="button"
+ onClick={() => setContractCustomerId(customer.id)}
+ style={{
+  padding: "10px 16px",
+  borderRadius: "8px",
+  border: "none",
+  backgroundColor: "#16a34a",
+  color: "white",
+  cursor: "pointer"
+ }}
+ >
+ + Add Contract
+ </button>
+
+{contractCustomerId === customer.id && (
+ <div style={{ marginTop: "15px" }}>
+ <input
+    type="text"
+    placeholder="Contract Title"
+    value={contractForm.title}
+    onChange={(e) => setContractForm({ ...contractForm, title: e.target.value })}
+    style={{ width: "100%", padding: "10px", marginBottom: "10px", boxSizing: "border-box" }}
+ />
+
+ <label>Effective Date</label>
+
+ <input
+    type="date"
+    value={contractForm.effectiveDate}
+    onChange={(e) => setContractForm({ ...contractForm, effectiveDate: e.target.value })}
+    style={{ width: "100%", padding: "10px", marginBottom: "10px", boxSizing: "border-box" }}
+ />
+
+ <label>Expiration Date</label>
+
+ <input
+    type="date"
+    value={contractForm.expirationDate}
+    onChange={(e) => setContractForm({ ...contractForm, expirationDate: e.target.value })}
+    style={{ width: "100%", padding: "10px", marginBottom: "10px", boxSizing: "border-box" }}
+ />
+
+ <textarea
+    placeholder="Contract Terms"
+    rows="6"
+    value={contractForm.terms}
+    onChange={(e) => setContractForm({ ...contractForm, terms: e.target.value })}
+    style={{ width: "100%", padding: "10px", marginBottom: "10px", boxSizing: "border-box" }}
+ />
+
+ <button
+    type="button"
+    onClick={() => saveCorporateContract(customer.id)}
+    style={{ padding: "10px 16px", borderRadius: "8px", border: "none", backgroundColor: "#2563eb", color: "white", cursor: "pointer" }}
+ >
+
+ Save Contract
+ </button>
+
+ <button
+    type="button"
+    onClick={() => setContractCustomerId(null)}
+    style={{ marginLeft: "10px", padding: "10px 16px", borderRadius: "8px", border: "1px solid #cbd5e1", backgroundColor: "white", cursor: "pointer" }}
+ >
+
+ Cancel
+ </button>
+
+ </div>
+)}
+
+</div>
+ </div>
+ ))
 )}
   </div>
 )}
