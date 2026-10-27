@@ -9,9 +9,12 @@ export default function CorporateCustomerDashboard() {
 
  const navigate = useNavigate();
  const [customer, setCustomer] = useState(null);
+ const [editingProfile, setEditingProfile] = useState(false);
+ const [profileForm, setProfileForm] = useState({ companyName: "", contactName: "", phone: "", businessType: "", businessAddress: "" });
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState("");
  const [contracts, setContracts] = useState([]);
+ const [showSignedContracts, setShowSignedContracts] = useState(false);
  const [signingContractId, setSigningContractId] = useState(null);
  const [signatureName, setSignatureName] = useState("");
  const [signatureConfirmed, setSignatureConfirmed] = useState(false);
@@ -126,6 +129,54 @@ async function signContract(contractId) {
   }
 }
 
+async function saveProfileChanges() {
+  if (
+    !profileForm.companyName.trim() ||
+    !profileForm.contactName.trim() ||
+    !profileForm.phone.trim() ||
+    !profileForm.businessType.trim() ||
+    !profileForm.businessAddress.trim()
+  ) {
+    alert("Please complete all company information fields.");
+    return;
+  }
+
+  try {
+    const updatedProfile = {
+      companyName: profileForm.companyName.trim(),
+      contactName: profileForm.contactName.trim(),
+      phone: profileForm.phone.trim(),
+      businessType: profileForm.businessType.trim(),
+      businessAddress: profileForm.businessAddress.trim(),
+      profileUpdatedAt: new Date().toISOString()
+    };
+
+    await updateDoc(
+      doc(db, "corporateCustomers", customer.id),
+      updatedProfile
+    );
+
+    setCustomer((currentCustomer) => ({
+      ...currentCustomer,
+      ...updatedProfile
+    }));
+
+    setEditingProfile(false);
+
+    alert("Company information updated successfully.");
+  } catch (error) {
+    console.error(
+      "Error updating company information:",
+      error
+    );
+
+    alert(
+      "Unable to update company information. Please try again."
+    );
+  }
+}
+
+
 async function handleLogout() {
  try {
  await signOut(auth);
@@ -186,126 +237,512 @@ return (
 
 </div>
 
+<div
+  style={{
+    marginTop: "20px",
+    padding: "25px",
+    backgroundColor: "#eff6ff",
+    borderRadius: "12px",
+    border: "1px solid #bfdbfe"
+  }}
+>
+  <h2
+    style={{
+      margin: "0 0 10px",
+      color: "#1e3a8a"
+    }}
+  >
+    Welcome, {customer.contactName}
+  </h2>
+
+  <p
+    style={{
+      margin: "0",
+      color: "#475569",
+      lineHeight: "1.6"
+    }}
+  >
+    Manage your Hustle & Fold corporate account,
+    review agreements, sign contracts requiring
+    your attention, and access completed documents.
+  </p>
+
+  {contracts.some(
+    (contract) => contract.status !== "Signed"
+  ) && (
+    <div
+      style={{
+        marginTop: "18px",
+        padding: "12px 15px",
+        backgroundColor: "#fef2f2",
+        border: "1px solid #fecaca",
+        borderRadius: "8px",
+        color: "#991b1b",
+        fontWeight: "600"
+      }}
+    >
+      Action Required: You have a contract awaiting
+      your signature.
+    </div>
+  )}
+</div>
+
  <div style={{ backgroundColor: "white", padding: "25px", marginTop: "20px", borderRadius: "12px", boxShadow: "0 4px 10px rgba(0,0,0,0.08)" }}>
  <h2>{customer.companyName}</h2>
+
+<span
+  style={{
+    display: "inline-block",
+    marginBottom: "15px",
+    backgroundColor: "#16a34a",
+    color: "white",
+    padding: "5px 12px",
+    borderRadius: "999px",
+    fontWeight: "600"
+  }}
+>
+  Account Active
+</span>
+
  <p><strong>Primary Contact:</strong> {customer.contactName}</p>
  <p><strong>Email:</strong> {customer.email}</p>
  <p><strong>Phone:</strong> {customer.phone}</p>
  <p><strong>Business Type:</strong> {customer.businessType}</p>
  <p><strong>Business Address:</strong> {customer.businessAddress}</p>
+
+<button
+  type="button"
+  onClick={() => {
+    setProfileForm({
+      companyName: customer.companyName || "",
+      contactName: customer.contactName || "",
+      phone: customer.phone || "",
+      businessType: customer.businessType || "",
+      businessAddress: customer.businessAddress || ""
+    });
+
+    setEditingProfile(true);
+  }}
+  style={{
+    marginTop: "15px",
+    padding: "10px 16px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#2563eb",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600"
+  }}
+>
+  Edit Company Information
+</button>
+
+{editingProfile && (
+  <div
+    style={{
+      marginTop: "20px",
+      padding: "20px",
+      backgroundColor: "#f8fafc",
+      borderRadius: "10px",
+      border: "1px solid #e2e8f0"
+    }}
+  >
+    <h3 style={{ color: "#1e3a8a" }}>
+      Update Company Information
+    </h3>
+
+    <input
+      type="text"
+      placeholder="Company Name"
+      value={profileForm.companyName}
+      onChange={(e) =>
+        setProfileForm({
+          ...profileForm,
+          companyName: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Primary Contact Name"
+      value={profileForm.contactName}
+      onChange={(e) =>
+        setProfileForm({
+          ...profileForm,
+          contactName: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="tel"
+      placeholder="Phone Number"
+      value={profileForm.phone}
+      onChange={(e) =>
+        setProfileForm({
+          ...profileForm,
+          phone: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Business Type"
+      value={profileForm.businessType}
+      onChange={(e) =>
+        setProfileForm({
+          ...profileForm,
+          businessType: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Business Address"
+      value={profileForm.businessAddress}
+      onChange={(e) =>
+        setProfileForm({
+          ...profileForm,
+          businessAddress: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "15px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <button
+      type="button"
+      onClick={saveProfileChanges}
+      style={{
+        padding: "10px 16px",
+        borderRadius: "8px",
+        border: "none",
+        backgroundColor: "#16a34a",
+        color: "white",
+        cursor: "pointer",
+        fontWeight: "600"
+      }}
+    >
+      Save Changes
+    </button>
+
+    <button
+      type="button"
+      onClick={() => setEditingProfile(false)}
+      style={{
+        marginLeft: "10px",
+        padding: "10px 16px",
+        borderRadius: "8px",
+        border: "1px solid #cbd5e1",
+        backgroundColor: "white",
+        cursor: "pointer"
+      }}
+    >
+      Cancel
+    </button>
+  </div>
+)}
+
  </div>
 
 <div style={{ backgroundColor: "white", padding: "25px", marginTop: "20px", borderRadius: "12px", boxShadow: "0 4px 10px rgba(0,0,0,0.08)" }}>
 
  <h2>Contracts</h2>
 
+<div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "15px" }}>
+
+ <span style={{ backgroundColor: "#dc2626", color: "white", padding: "6px 12px", borderRadius: "999px", fontWeight: "600" }}>
+ Pending Signature: {contracts.filter((contract) => contract.status !== "Signed").length}
+ </span>
+
+ <span style={{ backgroundColor: "#16a34a", color: "white", padding: "6px 12px", borderRadius: "999px", fontWeight: "600" }}>
+ Signed: {contracts.filter((contract) => contract.status === "Signed").length}
+ </span>
+
+</div>
+
+<button
+ type="button"
+ onClick={() => setShowSignedContracts((prev) => !prev)}
+
+ style={{
+ marginBottom: "15px",
+ padding: "8px 14px",
+ borderRadius: "8px",
+ border: "1px solid #cbd5e1",
+ backgroundColor: "white",
+ color: "#334155",
+ cursor: "pointer",
+ fontWeight: "600"
+ }}
+>
+
+ {showSignedContracts ? "Hide Signed Contracts" : "Show Signed Contracts"}
+
+</button>
+
  {contracts.length === 0 ? (
  <p>No contracts are currently available.</p>
  ) : (
+contracts
 
- contracts.map((contract) => (
- <div key={contract.id} style={{ marginTop: "15px", padding: "15px", backgroundColor: "#f8fafc", borderRadius: "8px" }}>
- <h3>{contract.title}</h3>
- <p><strong>Effective Date:</strong> {contract.effectiveDate}</p>
- <p><strong>Expiration Date:</strong> {contract.expirationDate || "None"}</p>
- <p><strong>Status:</strong>{" "} 
- <span style={{
-     backgroundColor: contract.status === "Signed" ? "#16a34a" : "#dc2626",
-     color: "white",
-     padding: "4px 10px",
-     borderRadius: "999px",
-     fontWeight: "600"
- }}
- >
+.filter((contract) => contract.status !== "Signed" || showSignedContracts)
+.slice()
+.sort((a, b) => (a.status === "Signed" ? 1 : 0) - (b.status === "Signed" ? 1 : 0))
+.map((contract) => (
+ <div
+  key={contract.id}
+  style={{
+    marginTop: "15px",
+    padding: "20px",
+    backgroundColor: "white",
+    borderRadius: "12px",
+    border: "1px solid #e2e8f0",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: "15px",
+      flexWrap: "wrap"
+    }}
+  >
+    <h3
+      style={{
+        margin: "0",
+        color: "#1e3a8a"
+      }}
+    >
+      {contract.title}
+    </h3>
 
- {contract.status || "Pending Signature"}
+    <span
+      style={{
+        backgroundColor:
+          contract.status === "Signed"
+            ? "#16a34a"
+            : "#dc2626",
+        color: "white",
+        padding: "5px 12px",
+        borderRadius: "999px",
+        fontWeight: "600"
+      }}
+    >
+      {contract.status || "Pending Signature"}
+    </span>
+  </div>
 
- </span>
+  <div
+    style={{
+      marginTop: "15px",
+      color: "#475569"
+    }}
+  >
+    <p style={{ margin: "6px 0" }}>
+      <strong>Effective Date:</strong>{" "}
+      {contract.effectiveDate}
+    </p>
 
-{contract.status === "Signed" && contract.signedPdfStoragePath && (
+    <p style={{ margin: "6px 0" }}>
+      <strong>Expiration Date:</strong>{" "}
+      {contract.expirationDate || "None"}
+    </p>
+  </div>
 
- <button
- type="button"
- onClick={() => downloadSignedContract(contract)}
- style={{
- marginBottom: "15px",
- padding: "10px 16px",
- borderRadius: "8px",
- border: "none",
- backgroundColor: "#2563eb",
- color: "white",
- cursor: "pointer"
- }}
- >
+  <div
+    style={{
+      marginTop: "18px",
+      paddingTop: "15px",
+      borderTop: "1px solid #e2e8f0"
+    }}
+  >
+    <strong>Contract Terms</strong>
 
- Download Signed PDF
+    <p
+      style={{
+        whiteSpace: "pre-wrap",
+        lineHeight: "1.6",
+        color: "#334155"
+      }}
+    >
+      {contract.terms}
+    </p>
+  </div>
 
- </button>
+  {contract.status === "Signed" &&
+    contract.signedPdfStoragePath && (
+      <button
+        type="button"
+        onClick={() =>
+          downloadSignedContract(contract)
+        }
+        style={{
+          marginTop: "10px",
+          padding: "10px 16px",
+          borderRadius: "8px",
+          border: "none",
+          backgroundColor: "#2563eb",
+          color: "white",
+          cursor: "pointer",
+          fontWeight: "600"
+        }}
+      >
+        Download Signed PDF
+      </button>
+    )}
 
-)}
+  {contract.status !== "Signed" &&
+    signingContractId !== contract.id && (
+      <button
+        type="button"
+        onClick={() =>
+          setSigningContractId(contract.id)
+        }
+        style={{
+          marginTop: "10px",
+          padding: "10px 16px",
+          borderRadius: "8px",
+          border: "none",
+          backgroundColor: "#2563eb",
+          color: "white",
+          cursor: "pointer",
+          fontWeight: "600"
+        }}
+      >
+        Review & Sign Contract
+      </button>
+    )}
 
-</p> <p><strong>Contract Terms:</strong></p>
- 
- <p style={{ whiteSpace: "pre-wrap" }}>{contract.terms}</p>
- {contract.status !== "Signed" && signingContractId !== contract.id && (
+  {signingContractId === contract.id && (
+    <div
+      style={{
+        marginTop: "18px",
+        padding: "18px",
+        backgroundColor: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "10px"
+      }}
+    >
+      <h4
+        style={{
+          marginTop: "0",
+          color: "#1e3a8a"
+        }}
+      >
+        Electronic Signature
+      </h4>
 
- <button
- type="button"
- onClick={() => setSigningContractId(contract.id)}
- style={{ padding: "10px 16px", borderRadius: "8px", border: "none", backgroundColor: "#2563eb", color: "white", cursor: "pointer" }}
- >
+      <input
+        type="text"
+        placeholder="Type your full legal name"
+        value={signatureName}
+        onChange={(e) =>
+          setSignatureName(e.target.value)
+        }
+        style={{
+          width: "100%",
+          padding: "10px",
+          marginBottom: "12px",
+          boxSizing: "border-box"
+        }}
+      />
 
- Review & Sign Contract
- </button>
-)}
+      <label
+        style={{
+          display: "block",
+          marginBottom: "15px",
+          lineHeight: "1.5"
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={signatureConfirmed}
+          onChange={(e) =>
+            setSignatureConfirmed(e.target.checked)
+          }
+        />{" "}
+        I have reviewed this contract and agree
+        to its terms. I intend my typed name to
+        serve as my electronic signature.
+      </label>
 
-{signingContractId === contract.id && (
- <div style={{ marginTop: "15px", padding: "15px", backgroundColor: "white", borderRadius: "8px" }}>
- <h4>Electronic Signature</h4>
- <input
-    type="text"
-    placeholder="Type your full legal name"
-    value={signatureName}
-    onChange={(e) => setSignatureName(e.target.value)}
-    style={{ width: "100%", padding: "10px", marginBottom: "12px", boxSizing: "border-box" }}
- />
+      <button
+        type="button"
+        onClick={() =>
+          signContract(contract.id)
+        }
+        disabled={
+          !signatureName.trim() ||
+          !signatureConfirmed
+        }
+        style={{
+          padding: "10px 16px",
+          borderRadius: "8px",
+          border: "none",
+          backgroundColor: "#16a34a",
+          color: "white",
+          cursor: "pointer",
+          fontWeight: "600"
+        }}
+      >
+        Sign Contract
+      </button>
 
- <label style={{ display: "block", marginBottom: "12px" }}>
- <input
-    type="checkbox"
-    checked={signatureConfirmed}
-    onChange={(e) => setSignatureConfirmed(e.target.checked)}
- />{" "}
-
- I have reviewed this contract and agree to its terms. I intend my typed name to serve as my electronic signature.
- </label>
-
- <button
-    type="button"
-    onClick={() => signContract(contract.id)}
-    disabled={!signatureName.trim() || !signatureConfirmed}
-    style={{ padding: "10px 16px", borderRadius: "8px", border: "none", backgroundColor: "#16a34a", color: "white", cursor: "pointer" }}
- >
-
- Sign Contract
- </button>
-
- <button
-    type="button"
-    onClick={() => {
-
- setSigningContractId(null);
- setSignatureName("");
- setSignatureConfirmed(false);
- }}
- style={{ marginLeft: "10px", padding: "10px 16px", borderRadius: "8px", border: "1px solid #cbd5e1", backgroundColor: "white", cursor: "pointer" }}
- >
-
- Cancel
- </button>
- </div>
-)}
- </div>
+      <button
+        type="button"
+        onClick={() => {
+          setSigningContractId(null);
+          setSignatureName("");
+          setSignatureConfirmed(false);
+        }}
+        style={{
+          marginLeft: "10px",
+          padding: "10px 16px",
+          borderRadius: "8px",
+          border: "1px solid #cbd5e1",
+          backgroundColor: "white",
+          cursor: "pointer"
+        }}
+      >
+        Cancel
+      </button>
+    </div>
+  )}
+</div>
  ))
  )}
 
