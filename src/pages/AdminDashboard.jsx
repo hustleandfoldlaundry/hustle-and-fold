@@ -52,10 +52,15 @@ if (!isLoggedIn) {
   const [showCorporateCustomerForm, setShowCorporateCustomerForm] = useState(false);
   const [corporateCustomerForm, setCorporateCustomerForm] = useState({ companyName: "", contactName: "", email: "", phone: "", businessType: "", businessAddress: "" });
   const [corporateCustomers, setCorporateCustomers] = useState([]);
+  const [editingServiceCustomerId, setEditingServiceCustomerId] = useState(null);
+  const [serviceDetailsForm, setServiceDetailsForm] = useState({ servicePlan: "", pickupFrequency: "", serviceDays: "", weeklyVolume: "", pricingRate: "", specialInstructions: "", serviceStartDate: "" });
   const [contractCustomerId, setContractCustomerId] = useState(null);
   const [corporateContracts, setCorporateContracts] = useState([]);
   const [showSignedContracts, setShowSignedContracts] = useState({});
   const [contractForm, setContractForm] = useState({ title: "", effectiveDate: "", expirationDate: "", terms: "" });
+
+  const [editingCorporateCustomerId, setEditingCorporateCustomerId] = useState(null);
+  const [corporateProfileForm, setCorporateProfileForm] = useState({ companyName: "", contactName: "", phone: "", businessType: "", businessAddress: "" });
 
 async function createCorporateCustomer() {
 
@@ -149,6 +154,104 @@ async function sendCorporateCustomerInvite(customerId) {
  console.error("Error sending corporate customer invitation:", error);
  alert(error?.message || "Unable to send the login invitation.");
  }
+}
+
+async function saveCorporateProfileChanges(customerId) {
+  if (
+    !corporateProfileForm.companyName.trim() ||
+    !corporateProfileForm.contactName.trim() ||
+    !corporateProfileForm.phone.trim() ||
+    !corporateProfileForm.businessType.trim() ||
+    !corporateProfileForm.businessAddress.trim()
+  ) {
+    alert("Please complete all company information fields.");
+    return;
+  }
+
+  try {
+    const updatedProfile = {
+      companyName: corporateProfileForm.companyName.trim(),
+      contactName: corporateProfileForm.contactName.trim(),
+      phone: corporateProfileForm.phone.trim(),
+      businessType: corporateProfileForm.businessType.trim(),
+      businessAddress: corporateProfileForm.businessAddress.trim(),
+      profileUpdatedAt: new Date().toISOString()
+    };
+
+    await updateDoc(
+      doc(db, "corporateCustomers", customerId),
+      updatedProfile
+    );
+
+    setCorporateCustomers((currentCustomers) =>
+      currentCustomers.map((customer) =>
+        customer.id === customerId
+          ? {
+              ...customer,
+              ...updatedProfile
+            }
+          : customer
+      )
+    );
+
+    setEditingCorporateCustomerId(null);
+
+    alert("Company information updated successfully.");
+  } catch (error) {
+    console.error(
+      "Error updating corporate customer:",
+      error
+    );
+
+    alert(
+      "Unable to update company information. Please try again."
+    );
+  }
+}
+
+async function saveCorporateServiceDetails(customerId) {
+  try {
+    const updatedServiceDetails = {
+      servicePlan: serviceDetailsForm.servicePlan.trim(),
+      pickupFrequency: serviceDetailsForm.pickupFrequency.trim(),
+      serviceDays: serviceDetailsForm.serviceDays.trim(),
+      weeklyVolume: serviceDetailsForm.weeklyVolume.trim(),
+      pricingRate: serviceDetailsForm.pricingRate.trim(),
+      specialInstructions:
+        serviceDetailsForm.specialInstructions.trim(),
+      serviceStartDate: serviceDetailsForm.serviceStartDate,
+      serviceDetailsUpdatedAt: new Date().toISOString()
+    };
+
+    await updateDoc(
+      doc(db, "corporateCustomers", customerId),
+      updatedServiceDetails
+    );
+
+    setCorporateCustomers((currentCustomers) =>
+      currentCustomers.map((customer) =>
+        customer.id === customerId
+          ? {
+              ...customer,
+              ...updatedServiceDetails
+            }
+          : customer
+      )
+    );
+
+    setEditingServiceCustomerId(null);
+
+    alert("Service details updated successfully.");
+  } catch (error) {
+    console.error(
+      "Error updating service details:",
+      error
+    );
+
+    alert(
+      "Unable to update service details. Please try again."
+    );
+  }
 }
 
 async function downloadSignedContract(contract) {
@@ -1501,17 +1604,508 @@ if (customerLogoFile) {
  corporateCustomers.map((customer) => (
 
 <div key={customer.id} style={{ backgroundColor: "white", padding: "20px", marginTop: "15px", borderRadius: "12px", boxShadow: "0 4px 10px rgba(0,0,0,0.08)", textAlign: "left" }}>
- <h3>{customer.companyName}</h3>
 
- <p>Contact: {customer.contactName}</p>
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(320px, 1fr))",
+    gap: "20px",
+    marginTop: "20px",
+    alignItems: "stretch"
+  }}
+>
+  {/* COMPANY INFORMATION */}
+  <div
+    style={{
+      padding: "20px",
+      backgroundColor: "#f8fafc",
+      borderRadius: "10px",
+      border: "1px solid #e2e8f0"
+    }}
+  >
+    <h4
+      style={{
+        marginTop: "0",
+        color: "#1e3a8a"
+      }}
+    >
+      Company Information
+    </h4>
 
- <p>Email: {customer.email}</p>
+    <h3>{customer.companyName}</h3>
 
- <p>Phone: {customer.phone}</p>
+    <p>
+      <strong>Contact:</strong>{" "}
+      {customer.contactName}
+    </p>
 
- <p>Business Type: {customer.businessType}</p>
+    <p>
+      <strong>Email:</strong>{" "}
+      {customer.email}
+    </p>
 
- <p>Business Address: {customer.businessAddress}</p>
+    <p>
+      <strong>Phone:</strong>{" "}
+      {customer.phone}
+    </p>
+
+    <p>
+      <strong>Business Type:</strong>{" "}
+      {customer.businessType}
+    </p>
+
+    <p>
+      <strong>Business Address:</strong>{" "}
+      {customer.businessAddress}
+    </p>
+
+<button
+  type="button"
+  onClick={() => {
+  setCorporateProfileForm({
+    companyName: customer.companyName || "",
+    contactName: customer.contactName || "",
+    phone: customer.phone || "",
+    businessType: customer.businessType || "",
+    businessAddress: customer.businessAddress || ""
+  });
+
+  setEditingCorporateCustomerId(customer.id);
+}}
+  style={{
+    marginTop: "10px",
+    padding: "10px 16px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#2563eb",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600"
+  }}
+>
+  Edit Company Information
+</button>
+
+  </div>
+
+  {/* SERVICE DETAILS */}
+  <div
+    style={{
+      padding: "20px",
+      backgroundColor: "#f8fafc",
+      borderRadius: "10px",
+      border: "1px solid #e2e8f0"
+    }}
+  >
+    <h4
+      style={{
+        marginTop: "0",
+        color: "#1e3a8a"
+      }}
+    >
+      Service Details
+    </h4>
+
+    <p>
+      <strong>Service Plan:</strong>{" "}
+      {customer.servicePlan || "Not set"}
+    </p>
+
+    <p>
+      <strong>Pickup Frequency:</strong>{" "}
+      {customer.pickupFrequency || "Not set"}
+    </p>
+
+    <p>
+      <strong>Service Days:</strong>{" "}
+      {customer.serviceDays || "Not set"}
+    </p>
+
+    <p>
+      <strong>Estimated Weekly Volume:</strong>{" "}
+      {customer.weeklyVolume || "Not set"}
+    </p>
+
+    <p>
+      <strong>Pricing / Rate:</strong>{" "}
+      {customer.pricingRate || "Not set"}
+    </p>
+
+    <p>
+      <strong>Service Start Date:</strong>{" "}
+      {customer.serviceStartDate || "Not set"}
+    </p>
+
+    <p>
+      <strong>
+        Special Handling Instructions:
+      </strong>{" "}
+      {customer.specialInstructions || "None"}
+    </p>
+
+    <button
+      type="button"
+      onClick={() => {
+        setServiceDetailsForm({
+          servicePlan:
+            customer.servicePlan || "",
+          pickupFrequency:
+            customer.pickupFrequency || "",
+          serviceDays:
+            customer.serviceDays || "",
+          weeklyVolume:
+            customer.weeklyVolume || "",
+          pricingRate:
+            customer.pricingRate || "",
+          specialInstructions:
+            customer.specialInstructions || "",
+          serviceStartDate:
+            customer.serviceStartDate || ""
+        });
+
+        setEditingServiceCustomerId(
+          customer.id
+        );
+      }}
+      style={{
+        marginTop: "10px",
+        padding: "10px 16px",
+        borderRadius: "8px",
+        border: "none",
+        backgroundColor: "#2563eb",
+        color: "white",
+        cursor: "pointer",
+        fontWeight: "600"
+      }}
+    >
+      Edit Service Details
+    </button>
+
+{editingServiceCustomerId === customer.id && (
+  <div
+    style={{
+      marginTop: "20px",
+      padding: "20px",
+      backgroundColor: "white",
+      borderRadius: "10px",
+      border: "1px solid #cbd5e1"
+    }}
+  >
+    <h4 style={{ color: "#1e3a8a" }}>
+      Update Service Details
+    </h4>
+
+    <input
+      type="text"
+      placeholder="Service Plan"
+      value={serviceDetailsForm.servicePlan}
+      onChange={(e) =>
+        setServiceDetailsForm({
+          ...serviceDetailsForm,
+          servicePlan: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Pickup Frequency"
+      value={serviceDetailsForm.pickupFrequency}
+      onChange={(e) =>
+        setServiceDetailsForm({
+          ...serviceDetailsForm,
+          pickupFrequency: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Service Days"
+      value={serviceDetailsForm.serviceDays}
+      onChange={(e) =>
+        setServiceDetailsForm({
+          ...serviceDetailsForm,
+          serviceDays: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Estimated Weekly Volume"
+      value={serviceDetailsForm.weeklyVolume}
+      onChange={(e) =>
+        setServiceDetailsForm({
+          ...serviceDetailsForm,
+          weeklyVolume: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Pricing / Rate"
+      value={serviceDetailsForm.pricingRate}
+      onChange={(e) =>
+        setServiceDetailsForm({
+          ...serviceDetailsForm,
+          pricingRate: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="date"
+      value={serviceDetailsForm.serviceStartDate}
+      onChange={(e) =>
+        setServiceDetailsForm({
+          ...serviceDetailsForm,
+          serviceStartDate: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <textarea
+      rows="4"
+      placeholder="Special Handling Instructions"
+      value={serviceDetailsForm.specialInstructions}
+      onChange={(e) =>
+        setServiceDetailsForm({
+          ...serviceDetailsForm,
+          specialInstructions: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "15px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <button
+      type="button"
+      onClick={() =>
+  saveCorporateServiceDetails(customer.id)
+}
+      style={{
+        padding: "10px 16px",
+        borderRadius: "8px",
+        border: "none",
+        backgroundColor: "#16a34a",
+        color: "white",
+        cursor: "pointer",
+        fontWeight: "600"
+      }}
+    >
+      Save Service Details
+    </button>
+
+    <button
+      type="button"
+      onClick={() =>
+        setEditingServiceCustomerId(null)
+      }
+      style={{
+        marginLeft: "10px",
+        padding: "10px 16px",
+        borderRadius: "8px",
+        border: "1px solid #cbd5e1",
+        backgroundColor: "white",
+        cursor: "pointer"
+      }}
+    >
+      Cancel
+    </button>
+  </div>
+)}
+
+  </div>
+</div>
+
+{editingCorporateCustomerId === customer.id && (
+  <div
+    style={{
+      marginTop: "20px",
+      padding: "20px",
+      backgroundColor: "#f8fafc",
+      borderRadius: "10px",
+      border: "1px solid #e2e8f0"
+    }}
+  >
+    <h3
+      style={{
+        marginTop: "0",
+        color: "#1e3a8a"
+      }}
+    >
+      Update Company Information
+    </h3>
+
+    <input
+      type="text"
+      placeholder="Company Name"
+      value={corporateProfileForm.companyName}
+      onChange={(e) =>
+        setCorporateProfileForm({
+          ...corporateProfileForm,
+          companyName: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Primary Contact Name"
+      value={corporateProfileForm.contactName}
+      onChange={(e) =>
+        setCorporateProfileForm({
+          ...corporateProfileForm,
+          contactName: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="tel"
+      placeholder="Phone Number"
+      value={corporateProfileForm.phone}
+      onChange={(e) =>
+        setCorporateProfileForm({
+          ...corporateProfileForm,
+          phone: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Business Type"
+      value={corporateProfileForm.businessType}
+      onChange={(e) =>
+        setCorporateProfileForm({
+          ...corporateProfileForm,
+          businessType: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "10px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Business Address"
+      value={corporateProfileForm.businessAddress}
+      onChange={(e) =>
+        setCorporateProfileForm({
+          ...corporateProfileForm,
+          businessAddress: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "15px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <button
+      type="button"
+      onClick={() =>
+    saveCorporateProfileChanges(customer.id)
+  }
+      style={{
+        padding: "10px 16px",
+        borderRadius: "8px",
+        border: "none",
+        backgroundColor: "#16a34a",
+        color: "white",
+        cursor: "pointer",
+        fontWeight: "600"
+      }}
+    >
+      Save Changes
+    </button>
+
+    <button
+      type="button"
+      onClick={() =>
+        setEditingCorporateCustomerId(null)
+      }
+      style={{
+        marginLeft: "10px",
+        padding: "10px 16px",
+        borderRadius: "8px",
+        border: "1px solid #cbd5e1",
+        backgroundColor: "white",
+        cursor: "pointer"
+      }}
+    >
+      Cancel
+    </button>
+  </div>
+)}
 
 <p>
 

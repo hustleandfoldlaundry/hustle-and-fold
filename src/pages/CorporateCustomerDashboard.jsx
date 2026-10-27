@@ -15,6 +15,7 @@ export default function CorporateCustomerDashboard() {
  const [error, setError] = useState("");
  const [contracts, setContracts] = useState([]);
  const [showSignedContracts, setShowSignedContracts] = useState(false);
+ const [showServiceHistory, setShowServiceHistory] = useState(false);
  const [signingContractId, setSigningContractId] = useState(null);
  const [signatureName, setSignatureName] = useState("");
  const [signatureConfirmed, setSignatureConfirmed] = useState(false);
@@ -287,6 +288,134 @@ return (
   )}
 </div>
 
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: "15px",
+    marginTop: "20px"
+  }}
+>
+  <div
+    style={{
+      backgroundColor: "white",
+      padding: "18px",
+      borderRadius: "12px",
+      border: "1px solid #e2e8f0",
+      textAlign: "center"
+    }}
+  >
+    <div
+      style={{
+        fontSize: "14px",
+        color: "#64748b",
+        marginBottom: "8px"
+      }}
+    >
+      Account Status
+    </div>
+
+    <strong style={{ color: "#16a34a" }}>
+      Active
+    </strong>
+  </div>
+
+  <div
+    style={{
+      backgroundColor: "white",
+      padding: "18px",
+      borderRadius: "12px",
+      border: "1px solid #e2e8f0",
+      textAlign: "center"
+    }}
+  >
+    <div
+      style={{
+        fontSize: "14px",
+        color: "#64748b",
+        marginBottom: "8px"
+      }}
+    >
+      Service Plan
+    </div>
+
+    <strong>
+      {customer.servicePlan || "Not set"}
+    </strong>
+  </div>
+
+  <div
+    style={{
+      backgroundColor: "white",
+      padding: "18px",
+      borderRadius: "12px",
+      border: "1px solid #e2e8f0",
+      textAlign: "center"
+    }}
+  >
+    <div
+      style={{
+        fontSize: "14px",
+        color: "#64748b",
+        marginBottom: "8px"
+      }}
+    >
+      Pickup Frequency
+    </div>
+
+    <strong>
+      {customer.pickupFrequency || "Not set"}
+    </strong>
+  </div>
+
+  <div
+    style={{
+      backgroundColor: "white",
+      padding: "18px",
+      borderRadius: "12px",
+      border: "1px solid #e2e8f0",
+      textAlign: "center"
+    }}
+  >
+    <div
+      style={{
+        fontSize: "14px",
+        color: "#64748b",
+        marginBottom: "8px"
+      }}
+    >
+      Contracts Awaiting Signature
+    </div>
+
+    <strong
+      style={{
+        color: contracts.some(
+          (contract) => contract.status !== "Signed"
+        )
+          ? "#dc2626"
+          : "#16a34a"
+      }}
+    >
+      {
+        contracts.filter(
+          (contract) => contract.status !== "Signed"
+        ).length
+      }
+    </strong>
+  </div>
+</div>
+
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(320px, 1fr))",
+    gap: "20px",
+    alignItems: "stretch"
+  }}
+>
+
  <div style={{ backgroundColor: "white", padding: "25px", marginTop: "20px", borderRadius: "12px", boxShadow: "0 4px 10px rgba(0,0,0,0.08)" }}>
  <h2>{customer.companyName}</h2>
 
@@ -475,6 +604,79 @@ return (
 )}
 
  </div>
+
+<div
+  style={{
+    backgroundColor: "white",
+    padding: "25px",
+    marginTop: "20px",
+    borderRadius: "12px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
+  }}
+>
+  <h2 style={{ color: "#1e3a8a" }}>
+    Service Details
+  </h2>
+
+  <p>
+    <strong>Service Plan:</strong>{" "}
+    {customer.servicePlan || "Not set"}
+  </p>
+
+  <p>
+    <strong>Pickup Frequency:</strong>{" "}
+    {customer.pickupFrequency || "Not set"}
+  </p>
+
+  <p>
+    <strong>Service Days:</strong>{" "}
+    {customer.serviceDays || "Not set"}
+  </p>
+
+  <p>
+    <strong>Estimated Weekly Volume:</strong>{" "}
+    {customer.weeklyVolume || "Not set"}
+  </p>
+
+  <p>
+    <strong>Pricing / Rate:</strong>{" "}
+    {customer.pricingRate || "Not set"}
+  </p>
+
+  <p>
+    <strong>Service Start Date:</strong>{" "}
+    {customer.serviceStartDate || "Not set"}
+  </p>
+
+  <p>
+    <strong>Special Handling Instructions:</strong>{" "}
+    {customer.specialInstructions || "None"}
+  </p>
+
+  <p
+    style={{
+      marginTop: "18px",
+      fontSize: "14px",
+      color: "#64748b"
+    }}
+  >
+    Service details are managed by Hustle & Fold. 
+    This information is based off your most recent signed contract.
+    Please contact us if changes are needed.
+  </p>
+</div>
+</div>
+
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(360px, 1fr))",
+    gap: "20px",
+    marginTop: "20px",
+    alignItems: "start"
+  }}
+>
 
 <div style={{ backgroundColor: "white", padding: "25px", marginTop: "20px", borderRadius: "12px", boxShadow: "0 4px 10px rgba(0,0,0,0.08)" }}>
 
@@ -746,6 +948,66 @@ contracts
  ))
  )}
 
+</div>
+
+<div
+  style={{
+    backgroundColor: "white",
+    padding: "25px",
+    borderRadius: "20px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: "15px"
+    }}
+  >
+    <h2 style={{ margin: "0" }}>
+      Service History
+    </h2>
+
+    <button
+      type="button"
+      onClick={() =>
+        setShowServiceHistory((prev) => !prev)
+      }
+      style={{
+        padding: "8px 14px",
+        borderRadius: "8px",
+        border: "1px solid #cbd5e1",
+        backgroundColor: "white",
+        color: "#334155",
+        cursor: "pointer",
+        fontWeight: "600"
+      }}
+    >
+      {showServiceHistory ? "Hide History" : "View History"}
+    </button>
+  </div>
+
+  {showServiceHistory && (
+    <div
+      style={{
+        marginTop: "20px",
+        paddingTop: "15px",
+        borderTop: "1px solid #e2e8f0"
+      }}
+    >
+      <p
+        style={{
+          color: "#64748b",
+          margin: "0"
+        }}
+      >
+        No service history is available yet.
+      </p>
+    </div>
+  )}
+</div>
 </div>
 
  </div>
