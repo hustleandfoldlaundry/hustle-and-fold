@@ -58,7 +58,8 @@ if (!isLoggedIn) {
   const [corporateContracts, setCorporateContracts] = useState([]);
   const [showSignedContracts, setShowSignedContracts] = useState({});
   const [contractForm, setContractForm] = useState({ title: "", effectiveDate: "", expirationDate: "", terms: "" });
-
+  const [serviceHistoryCustomerId, setServiceHistoryCustomerId] = useState(null);
+  const [serviceHistoryForm, setServiceHistoryForm] = useState({ serviceDate: "", serviceType: "", serviceStatus: "", volume: "", amountCharged: "", notes: "" });
   const [editingCorporateCustomerId, setEditingCorporateCustomerId] = useState(null);
   const [corporateProfileForm, setCorporateProfileForm] = useState({ companyName: "", contactName: "", phone: "", businessType: "", businessAddress: "" });
 
@@ -250,6 +251,58 @@ async function saveCorporateServiceDetails(customerId) {
 
     alert(
       "Unable to update service details. Please try again."
+    );
+  }
+}
+
+async function saveCorporateServiceRecord(customerId) {
+  if (
+    !serviceHistoryForm.serviceDate ||
+    !serviceHistoryForm.serviceType.trim() ||
+    !serviceHistoryForm.serviceStatus
+  ) {
+    alert(
+      "Please enter the service date, service type, and service status."
+    );
+    return;
+  }
+
+  try {
+    await addDoc(
+      collection(db, "corporateServiceHistory"),
+      {
+        corporateCustomerId: customerId,
+        serviceDate: serviceHistoryForm.serviceDate,
+        serviceType: serviceHistoryForm.serviceType.trim(),
+        serviceStatus: serviceHistoryForm.serviceStatus,
+        volume: serviceHistoryForm.volume.trim(),
+        amountCharged:
+          serviceHistoryForm.amountCharged.trim(),
+        notes: serviceHistoryForm.notes.trim(),
+        createdAt: new Date().toISOString()
+      }
+    );
+
+    alert("Service record saved successfully.");
+
+    setServiceHistoryForm({
+      serviceDate: "",
+      serviceType: "",
+      serviceStatus: "",
+      volume: "",
+      amountCharged: "",
+      notes: ""
+    });
+
+    setServiceHistoryCustomerId(null);
+  } catch (error) {
+    console.error(
+      "Error saving corporate service record:",
+      error
+    );
+
+    alert(
+      "Unable to save the service record. Please try again."
     );
   }
 }
@@ -1781,6 +1834,201 @@ if (customerLogoFile) {
     >
       Edit Service Details
     </button>
+
+<button
+  type="button"
+  onClick={() => setServiceHistoryCustomerId(customer.id)}
+  style={{
+    marginTop: "10px",
+    marginLeft: "10px",
+    padding: "10px 16px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#16a34a",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600"
+  }}
+>
+  + Add Service Record
+</button>
+
+{serviceHistoryCustomerId === customer.id && (
+  <div
+    style={{
+      marginTop: "20px",
+      padding: "20px",
+      backgroundColor: "#f8fafc",
+      borderRadius: "10px",
+      border: "1px solid #e2e8f0"
+    }}
+  >
+    <h4
+      style={{
+        marginTop: "0",
+        color: "#1e3a8a"
+      }}
+    >
+      Add Service Record
+    </h4>
+
+    <label>Service Date</label>
+    <input
+      type="date"
+      value={serviceHistoryForm.serviceDate}
+      onChange={(e) =>
+        setServiceHistoryForm({
+          ...serviceHistoryForm,
+          serviceDate: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginTop: "5px",
+        marginBottom: "12px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Service Type"
+      value={serviceHistoryForm.serviceType}
+      onChange={(e) =>
+        setServiceHistoryForm({
+          ...serviceHistoryForm,
+          serviceType: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "12px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <select
+      value={serviceHistoryForm.serviceStatus}
+      onChange={(e) =>
+        setServiceHistoryForm({
+          ...serviceHistoryForm,
+          serviceStatus: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "12px",
+        boxSizing: "border-box"
+      }}
+    >
+      <option value="">Service Status</option>
+      <option value="Picked Up">Picked Up</option>
+      <option value="In Process">In Process</option>
+      <option value="Delivered">Delivered</option>
+      <option value="Completed">Completed</option>
+    </select>
+
+    <input
+      type="text"
+      placeholder="Weight / Volume"
+      value={serviceHistoryForm.volume}
+      onChange={(e) =>
+        setServiceHistoryForm({
+          ...serviceHistoryForm,
+          volume: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "12px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Amount Charged"
+      value={serviceHistoryForm.amountCharged}
+      onChange={(e) =>
+        setServiceHistoryForm({
+          ...serviceHistoryForm,
+          amountCharged: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "12px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <textarea
+      rows="4"
+      placeholder="Service Notes"
+      value={serviceHistoryForm.notes}
+      onChange={(e) =>
+        setServiceHistoryForm({
+          ...serviceHistoryForm,
+          notes: e.target.value
+        })
+      }
+      style={{
+        width: "100%",
+        padding: "10px",
+        marginBottom: "15px",
+        boxSizing: "border-box"
+      }}
+    />
+
+    <button
+      type="button"
+      onClick={() =>
+  saveCorporateServiceRecord(customer.id)
+}
+      style={{
+        padding: "10px 16px",
+        borderRadius: "8px",
+        border: "none",
+        backgroundColor: "#16a34a",
+        color: "white",
+        cursor: "pointer",
+        fontWeight: "600"
+      }}
+    >
+      Save Service Record
+    </button>
+
+    <button
+      type="button"
+      onClick={() => {
+        setServiceHistoryCustomerId(null);
+        setServiceHistoryForm({
+          serviceDate: "",
+          serviceType: "",
+          serviceStatus: "",
+          volume: "",
+          amountCharged: "",
+          notes: ""
+        });
+      }}
+      style={{
+        marginLeft: "10px",
+        padding: "10px 16px",
+        borderRadius: "8px",
+        border: "1px solid #cbd5e1",
+        backgroundColor: "white",
+        cursor: "pointer"
+      }}
+    >
+      Cancel
+    </button>
+  </div>
+)}
 
 {editingServiceCustomerId === customer.id && (
   <div

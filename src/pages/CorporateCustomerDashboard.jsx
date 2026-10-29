@@ -16,6 +16,7 @@ export default function CorporateCustomerDashboard() {
  const [contracts, setContracts] = useState([]);
  const [showSignedContracts, setShowSignedContracts] = useState(false);
  const [showServiceHistory, setShowServiceHistory] = useState(false);
+ const [serviceHistory, setServiceHistory] = useState([]);
  const [signingContractId, setSigningContractId] = useState(null);
  const [signatureName, setSignatureName] = useState("");
  const [signatureConfirmed, setSignatureConfirmed] = useState(false);
@@ -25,9 +26,7 @@ useEffect(() => {
  async function loadCorporateProfile() {
  try {
 
- const user = auth.currentUser;
- if (!user) {
- navigate("/corporate/login");
+ const user = auth.currentUser; if (!user) { navigate("/corporate/login");
  return;
  }
  const tokenResult = await user.getIdTokenResult(true);
@@ -60,6 +59,19 @@ useEffect(() => {
  .filter((contract) => contract.corporateCustomerId === customerId);
 
 setContracts(customerContracts);
+
+const serviceHistorySnapshot = await getDocs(
+  collection(db, "corporateServiceHistory")
+);
+
+const customerServiceHistory = serviceHistorySnapshot.docs
+  .map((docItem) => ({
+    id: docItem.id,
+    ...docItem.data()
+  }))
+  .filter((historyItem) => historyItem.corporateCustomerId === customerId);
+
+setServiceHistory(customerServiceHistory);
 
  } catch (err) {
  console.error("Error loading corporate profile:", err);
@@ -291,10 +303,10 @@ return (
 <div
   style={{
     display: "grid",
-    gridTemplateColumns:
-      "repeat(auto-fit, minmax(180px, 1fr))",
-    gap: "15px",
-    marginTop: "20px"
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: "20px",
+    marginTop: "20px",
+    alignItems: "start"
   }}
 >
   <div
@@ -989,14 +1001,15 @@ contracts
     </button>
   </div>
 
-  {showServiceHistory && (
-    <div
-      style={{
-        marginTop: "20px",
-        paddingTop: "15px",
-        borderTop: "1px solid #e2e8f0"
-      }}
-    >
+{showServiceHistory && (
+  <div
+    style={{
+      marginTop: "20px",
+      paddingTop: "15px",
+      borderTop: "1px solid #e2e8f0"
+    }}
+  >
+    {serviceHistory.length === 0 ? (
       <p
         style={{
           color: "#64748b",
@@ -1005,8 +1018,85 @@ contracts
       >
         No service history is available yet.
       </p>
-    </div>
+    ) : (
+      serviceHistory.map((historyItem) => (
+        <div
+  key={historyItem.id}
+  style={{
+    padding: "18px",
+    marginBottom: "12px",
+    backgroundColor: "#f8fafc",
+    border: "1px solid #e2e8f0",
+    borderRadius: "12px"
+  }}
+>
+         <div style={{ color: "#334155", lineHeight: "1.6" }}>
+  <p style={{ margin: "4px 0" }}>
+    <strong>Service Date:</strong>{" "}
+{historyItem.serviceDate
+  ? new Date(`${historyItem.serviceDate}T00:00:00`).toLocaleDateString(
+      "en-US",
+      {
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+      }
+    )
+  : "N/A"}
+  </p>
+
+  <p style={{ margin: "4px 0" }}>
+    <strong>Service Type:</strong> {historyItem.serviceType || "N/A"}
+  </p>
+
+  <p style={{ margin: "4px 0" }}>
+<p style={{ margin: "4px 0" }}>
+  <strong>Status:</strong>{" "}
+  <span
+    style={{
+      display: "inline-block",
+      padding: "3px 10px",
+      borderRadius: "999px",
+      fontSize: "13px",
+      fontWeight: "600",
+      backgroundColor:
+        historyItem.serviceStatus === "Completed"
+          ? "#dcfce7"
+          : historyItem.serviceStatus === "Picked Up"
+          ? "#dbeafe"
+          : "#f1f5f9",
+      color:
+        historyItem.serviceStatus === "Completed"
+          ? "#166534"
+          : historyItem.serviceStatus === "Picked Up"
+          ? "#1e40af"
+          : "#475569"
+    }}
+  >
+    {historyItem.serviceStatus || "N/A"}
+  </span>
+</p>
+  </p>
+
+  <p style={{ margin: "4px 0" }}>
+    <strong>Volume:</strong> {historyItem.volume || "N/A"}
+  </p>
+
+  <p style={{ margin: "4px 0" }}>
+    <strong>Amount Charged:</strong> {historyItem.amountCharged || "N/A"}
+  </p>
+
+  {historyItem.notes && (
+    <p style={{ margin: "4px 0" }}>
+      <strong>Notes:</strong> {historyItem.notes}
+    </p>
   )}
+</div>
+        </div>
+      ))
+    )}
+  </div>
+)}
 </div>
 </div>
 
