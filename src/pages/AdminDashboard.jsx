@@ -333,6 +333,32 @@ async function loadCorporateServiceHistory(customerId) {
   }
 }
 
+async function updateCorporateServiceStatus(historyId, newStatus) {
+  try {
+    await updateDoc(
+      doc(db, "corporateServiceHistory", historyId),
+      {
+        serviceStatus: newStatus
+      }
+    );
+
+    setServiceHistory((currentHistory) =>
+      currentHistory.map((historyItem) =>
+        historyItem.id === historyId
+          ? { ...historyItem, serviceStatus: newStatus }
+          : historyItem
+      )
+    );
+  } catch (error) {
+    console.error(
+      "Error updating corporate service status:",
+      error
+    );
+
+    alert("Unable to update the service status. Please try again.");
+  }
+}
+
 async function downloadSignedContract(contract) {
  try {
  if (!contract.signedPdfStoragePath) {
@@ -1903,10 +1929,68 @@ if (customerLogoFile) {
       </h4>
 
       {serviceHistory.map((historyItem) => (
-        <div key={historyItem.id}>
-          {historyItem.serviceDate} - {historyItem.serviceType}
-        </div>
-      ))}
+  <div
+    key={historyItem.id}
+    style={{
+      padding: "15px",
+      marginBottom: "12px",
+      backgroundColor: "white",
+      border: "1px solid #e2e8f0",
+      borderRadius: "8px"
+    }}
+  >
+    <div style={{ marginBottom: "6px" }}>
+      <strong>Service Date:</strong>{" "}
+      {historyItem.serviceDate}
+    </div>
+
+    <div style={{ marginBottom: "6px" }}>
+      <strong>Service Type:</strong>{" "}
+      {historyItem.serviceType || "—"}
+    </div>
+
+    <div style={{ marginBottom: "6px" }}>
+  <strong>Status:</strong>{" "}
+
+  <select
+    value={historyItem.serviceStatus || ""}
+    onChange={(e) =>
+      updateCorporateServiceStatus(
+        historyItem.id,
+        e.target.value
+      )
+    }
+    style={{
+      marginLeft: "6px",
+      padding: "6px 10px",
+      borderRadius: "6px",
+      border: "1px solid #cbd5e1"
+    }}
+  >
+    <option value="">Service Status</option>
+    <option value="Picked Up">Picked Up</option>
+    <option value="In Process">In Process</option>
+    <option value="Delivered">Delivered</option>
+    <option value="Completed">Completed</option>
+  </select>
+</div>
+
+    <div style={{ marginBottom: "6px" }}>
+      <strong>Volume:</strong>{" "}
+      {historyItem.volume || "—"}
+    </div>
+
+    <div style={{ marginBottom: "6px" }}>
+      <strong>Amount Charged:</strong>{" "}
+      {historyItem.amountCharged || "—"}
+    </div>
+
+    <div>
+      <strong>Notes:</strong>{" "}
+      {historyItem.notes || "—"}
+    </div>
+  </div>
+))}
     </div>
   )}
 
