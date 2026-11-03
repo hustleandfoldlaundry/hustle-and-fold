@@ -61,11 +61,30 @@ async function handleSubmit(e) {
 <div
   style={{
     display: "flex",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
+    alignItems: "center",
     maxWidth: "1100px",
     margin: "0 auto 20px"
   }}
 >
+
+<button
+  type="button"
+  onClick={() => navigate("/corporate/login")}
+  style={{
+    padding: "10px 16px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#2563eb",
+    color: "white",
+    fontSize: "16px",
+    fontWeight: "600",
+    cursor: "pointer"
+  }}
+>
+  Corporate Customer Login
+</button>
+
   <select
     defaultValue=""
     onChange={(e) => {
@@ -102,6 +121,7 @@ async function handleSubmit(e) {
       Contact Us
     </option>
   </select>
+
 </div>
 
       <h1 style={{ color: "#1e3a8a" }}>
