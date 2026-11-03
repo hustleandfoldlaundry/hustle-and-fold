@@ -59,7 +59,9 @@ if (!isLoggedIn) {
   const [showSignedContracts, setShowSignedContracts] = useState({});
   const [contractForm, setContractForm] = useState({ title: "", effectiveDate: "", expirationDate: "", terms: "" });
   const [serviceHistoryCustomerId, setServiceHistoryCustomerId] = useState(null);
+  const [serviceHistory, setServiceHistory] = useState([]);
   const [serviceHistoryForm, setServiceHistoryForm] = useState({ serviceDate: "", serviceType: "", serviceStatus: "", volume: "", amountCharged: "", notes: "" });
+  const [invoiceForm, setInvoiceForm] = useState({ invoiceNumber: "", invoiceDate: "", dueDate: "", amount: "", status: "Unpaid", billingPeriod: "", notes: "" });
   const [editingCorporateCustomerId, setEditingCorporateCustomerId] = useState(null);
   const [corporateProfileForm, setCorporateProfileForm] = useState({ companyName: "", contactName: "", phone: "", businessType: "", businessAddress: "" });
 

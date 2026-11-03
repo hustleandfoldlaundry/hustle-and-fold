@@ -16,6 +16,8 @@ export default function CorporateCustomerDashboard() {
  const [contracts, setContracts] = useState([]);
  const [showSignedContracts, setShowSignedContracts] = useState(false);
  const [showServiceHistory, setShowServiceHistory] = useState(false);
+ const [showInvoices, setShowInvoices] = useState(false);
+ const [invoices, setInvoices] = useState([]);
  const [serviceHistory, setServiceHistory] = useState([]);
  const [signingContractId, setSigningContractId] = useState(null);
  const [signatureName, setSignatureName] = useState("");
@@ -72,6 +74,19 @@ const customerServiceHistory = serviceHistorySnapshot.docs
   .filter((historyItem) => historyItem.corporateCustomerId === customerId);
 
 setServiceHistory(customerServiceHistory);
+
+const invoicesSnapshot = await getDocs(
+  collection(db, "corporateInvoices")
+);
+
+const customerInvoices = invoicesSnapshot.docs
+  .map((docItem) => ({
+    id: docItem.id,
+    ...docItem.data()
+  }))
+  .filter((invoice) => invoice.corporateCustomerId === customerId);
+
+setInvoices(customerInvoices);
 
  } catch (err) {
  console.error("Error loading corporate profile:", err);
@@ -303,7 +318,7 @@ return (
 <div
   style={{
     display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
     gap: "20px",
     marginTop: "20px",
     alignItems: "start"
@@ -320,7 +335,7 @@ return (
   >
     <div
       style={{
-        fontSize: "14px",
+        fontSize: "12px",
         color: "#64748b",
         marginBottom: "8px"
       }}
@@ -344,7 +359,7 @@ return (
   >
     <div
       style={{
-        fontSize: "14px",
+        fontSize: "12px",
         color: "#64748b",
         marginBottom: "8px"
       }}
@@ -352,9 +367,9 @@ return (
       Service Plan
     </div>
 
-    <strong>
-      {customer.servicePlan || "Not set"}
-    </strong>
+    <strong style={{ fontSize: "12px" }}>
+  {customer.servicePlan || "Not set"}
+</strong>
   </div>
 
   <div
@@ -368,7 +383,7 @@ return (
   >
     <div
       style={{
-        fontSize: "14px",
+        fontSize: "12px",
         color: "#64748b",
         marginBottom: "8px"
       }}
@@ -376,7 +391,7 @@ return (
       Pickup Frequency
     </div>
 
-    <strong>
+    <strong style={{ fontsize: "12px" }}>
       {customer.pickupFrequency || "Not set"}
     </strong>
   </div>
@@ -392,7 +407,7 @@ return (
   >
     <div
       style={{
-        fontSize: "14px",
+        fontSize: "10.5px",
         color: "#64748b",
         marginBottom: "8px"
       }}
@@ -416,6 +431,36 @@ return (
       }
     </strong>
   </div>
+
+<div
+  style={{
+    backgroundColor: "white",
+    padding: "18px",
+    borderRadius: "12px",
+    border: "1px solid #e2e8f0",
+    textAlign: "center"
+  }}
+>
+  <div
+    style={{
+      fontSize: "12px",
+      color: "#64748b",
+      marginBottom: "8px"
+    }}
+  >
+    Unpaid Invoices
+  </div>
+
+  <strong
+    style={{
+      fontSize: "13px",
+      color: "#dc2626"
+    }}
+  >
+    {invoices.filter((invoice) => invoice.status === "Unpaid").length}
+  </strong>
+</div>
+
 </div>
 
 <div
@@ -1098,6 +1143,81 @@ contracts
   </div>
 )}
 </div>
+</div>
+
+<div
+  style={{
+    backgroundColor: "white",
+    padding: "25px",
+    marginTop: "20px",
+    borderRadius: "20px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: "15px"
+    }}
+  >
+    <h2 style={{ margin: "0" }}>Invoices</h2>
+
+    <button
+      type="button"
+      onClick={() => setShowInvoices((prev) => !prev)}
+      style={{
+        padding: "8px 14px",
+        borderRadius: "8px",
+        border: "1px solid #cbd5e1",
+        backgroundColor: "white",
+        color: "#334155",
+        cursor: "pointer",
+        fontWeight: "600"
+      }}
+    >
+      {showInvoices ? "Hide Invoices" : "View Invoices"}
+    </button>
+  </div>
+
+  {showInvoices && (
+    <div
+      style={{
+        marginTop: "20px",
+        paddingTop: "15px",
+        borderTop: "1px solid #e2e8f0"
+      }}
+    >
+      {invoices.length === 0 ? (
+  <p
+    style={{
+      color: "#64748b",
+      margin: "0"
+    }}
+  >
+    No invoices are currently available.
+  </p>
+) : (
+  invoices.map((invoice) => (
+    <div
+      key={invoice.id}
+      style={{
+        padding: "18px",
+        marginBottom: "12px",
+        backgroundColor: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "12px"
+      }}
+    >
+      <div style={{ color: "#334155", lineHeight: "1.6" }}>
+        Invoice record loaded.
+      </div>
+    </div>
+  ))
+)}
+    </div>
+  )}
 </div>
 
  </div>
