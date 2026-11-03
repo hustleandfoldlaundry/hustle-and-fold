@@ -59,6 +59,7 @@ if (!isLoggedIn) {
   const [showSignedContracts, setShowSignedContracts] = useState({});
   const [contractForm, setContractForm] = useState({ title: "", effectiveDate: "", expirationDate: "", terms: "" });
   const [serviceHistoryCustomerId, setServiceHistoryCustomerId] = useState(null);
+  const [convertingLeadId, setConvertingLeadId] = useState(null);
   const [serviceHistory, setServiceHistory] = useState([]);
   const [serviceHistoryForm, setServiceHistoryForm] = useState({ serviceDate: "", serviceType: "", serviceStatus: "", volume: "", amountCharged: "", notes: "" });
   const [invoiceForm, setInvoiceForm] = useState({ invoiceNumber: "", invoiceDate: "", dueDate: "", amount: "", status: "Unpaid", billingPeriod: "", notes: "" });
@@ -95,6 +96,11 @@ if (
       }
     );
 
+if (convertingLeadId) {
+  await updateLeadStatus(convertingLeadId, "Customer");
+  setConvertingLeadId(null);
+}
+
     alert("Corporate customer created successfully.");
 
     setCorporateCustomerForm({
@@ -119,6 +125,22 @@ if (
   }
 }
   
+function convertLeadToCorporateCustomer(lead) {
+  setConvertingLeadId(lead.id);
+
+  setCorporateCustomerForm({
+    companyName: lead.companyName || "",
+    contactName: lead.contactName || "",
+    email: lead.email || "",
+    phone: lead.phone || "",
+    businessType: lead.businessType || "",
+    businessAddress: ""
+  });
+  
+  setActiveTab("Corporate Customers");
+  setShowCorporateCustomerForm(true);
+}
+
 async function loadCorporateCustomers() {
  try {
  const snapshot = await getDocs(collection(db, "corporateCustomers"));
@@ -1400,6 +1422,21 @@ if (customerLogoFile) {
   >
     Customer
   </button>
+
+<button
+  onClick={() => convertLeadToCorporateCustomer(lead)}
+  style={{
+    padding: "8px 14px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#16a34a",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600"
+  }}
+>
+  Create Corporate Customer
+</button>
 
   <button
     onClick={() =>
