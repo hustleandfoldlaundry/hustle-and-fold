@@ -309,6 +309,30 @@ async function saveCorporateServiceRecord(customerId) {
   }
 }
 
+async function loadCorporateServiceHistory(customerId) {
+  try {
+    const historySnapshot = await getDocs(
+      collection(db, "corporateServiceHistory")
+    );
+
+    const historyRecords = historySnapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      .filter(
+        (record) => record.corporateCustomerId === customerId
+      );
+
+    setServiceHistory(historyRecords);
+  } catch (error) {
+    console.error(
+      "Error loading corporate service history:",
+      error
+    );
+  }
+}
+
 async function downloadSignedContract(contract) {
  try {
  if (!contract.signedPdfStoragePath) {
@@ -1839,7 +1863,10 @@ if (customerLogoFile) {
 
 <button
   type="button"
-  onClick={() => setServiceHistoryCustomerId(customer.id)}
+  onClick={() => {
+  setServiceHistoryCustomerId(customer.id);
+  loadCorporateServiceHistory(customer.id);
+}}
   style={{
     marginTop: "10px",
     marginLeft: "10px",
@@ -1854,6 +1881,34 @@ if (customerLogoFile) {
 >
   + Add Service Record
 </button>
+
+{serviceHistoryCustomerId === customer.id &&
+  serviceHistory.length > 0 && (
+    <div
+      style={{
+        marginTop: "20px",
+        padding: "20px",
+        backgroundColor: "#f8fafc",
+        borderRadius: "10px",
+        border: "1px solid #e2e8f0"
+      }}
+    >
+      <h4
+        style={{
+          marginTop: "0",
+          color: "#1e3a8a"
+        }}
+      >
+        Service History
+      </h4>
+
+      {serviceHistory.map((historyItem) => (
+        <div key={historyItem.id}>
+          {historyItem.serviceDate} - {historyItem.serviceType}
+        </div>
+      ))}
+    </div>
+  )}
 
 {serviceHistoryCustomerId === customer.id && (
   <div
