@@ -58,6 +58,9 @@ if (!isLoggedIn) {
   const [corporateContracts, setCorporateContracts] = useState([]);
   const [showSignedContracts, setShowSignedContracts] = useState({});
   const [contractForm, setContractForm] = useState({ title: "", effectiveDate: "", expirationDate: "", terms: "" });
+  const [contractTemplates, setContractTemplates] = useState([]);
+  const [editingContractTemplateId, setEditingContractTemplateId] = useState(null);
+  const [contractTemplateForm, setContractTemplateForm] = useState({ businessType: "", title: "", terms: "" });
   const [serviceHistoryCustomerId, setServiceHistoryCustomerId] = useState(null);
   const [convertingLeadId, setConvertingLeadId] = useState(null);
   const [serviceHistory, setServiceHistory] = useState([]);
@@ -153,6 +156,86 @@ async function loadCorporateCustomers() {
  } catch (error) {
  console.error("Error loading corporate customers:", error);
  }
+}
+
+async function saveContractTemplate() {
+  if (
+    !contractTemplateForm.businessType.trim() ||
+    !contractTemplateForm.title.trim() ||
+    !contractTemplateForm.terms.trim()
+  ) {
+    alert("Please complete all contract template fields.");
+    return;
+  }
+try {
+  if (editingContractTemplateId) {
+    await updateDoc(
+      doc(
+        db,
+        "corporateContractTemplates",
+        editingContractTemplateId
+      ),
+      {
+        businessType: contractTemplateForm.businessType.trim(),
+        title: contractTemplateForm.title.trim(),
+        terms: contractTemplateForm.terms.trim(),
+        updatedAt: new Date().toISOString()
+      }
+    );
+
+    setEditingContractTemplateId(null);
+  } else {
+    await addDoc(
+      collection(db, "corporateContractTemplates"),
+      {
+        businessType: contractTemplateForm.businessType.trim(),
+        title: contractTemplateForm.title.trim(),
+        terms: contractTemplateForm.terms.trim(),
+        createdAt: new Date().toISOString()
+      }
+    );
+  }
+  
+    await loadContractTemplates();
+
+    alert("Contract template saved successfully.");
+
+    setContractTemplateForm({
+      businessType: "",
+      title: "",
+      terms: ""
+    });
+  } catch (error) {
+    console.error("Error saving contract template:", error);
+    alert("Unable to save the contract template. Please try again.");
+  }
+}
+
+async function loadContractTemplates() {
+  try {
+    const templateSnapshot = await getDocs(
+      collection(db, "corporateContractTemplates")
+    );
+
+    const templates = templateSnapshot.docs.map((docItem) => ({
+      id: docItem.id,
+      ...docItem.data()
+    }));
+
+    setContractTemplates(templates);
+  } catch (error) {
+    console.error("Error loading contract templates:", error);
+  }
+}
+
+function editContractTemplate(template) {
+  setEditingContractTemplateId(template.id);
+
+  setContractTemplateForm({
+    businessType: template.businessType || "",
+    title: template.title || "",
+    terms: template.terms || ""
+  });
 }
 
 async function loadCorporateContracts() {
@@ -548,6 +631,7 @@ setCorporateLeads(corporateData);
     loadOrders();
     loadCorporateCustomers();
     loadCorporateContracts();
+    loadContractTemplates();
   }, []);
 
   useEffect(() => {
@@ -1608,6 +1692,143 @@ if (customerLogoFile) {
     >
       + Create Corporate Customer
     </button>
+
+<h3
+  style={{
+    marginTop: "25px",
+    marginBottom: "10px",
+    color: "#1e3a8a"
+  }}
+>
+  Contract Templates
+</h3>
+
+<input
+  type="text"
+  placeholder="Business Type"
+  value={contractTemplateForm.businessType}
+  onChange={(e) =>
+    setContractTemplateForm({
+      ...contractTemplateForm,
+      businessType: e.target.value
+    })
+  }
+  style={{
+    width: "100%",
+    maxWidth: "600px",
+    padding: "10px",
+    marginBottom: "10px",
+    boxSizing: "border-box"
+  }}
+/>
+
+<input
+  type="text"
+  placeholder="Contract Title"
+  value={contractTemplateForm.title}
+  onChange={(e) =>
+    setContractTemplateForm({
+      ...contractTemplateForm,
+      title: e.target.value
+    })
+  }
+  style={{
+    width: "100%",
+    maxWidth: "600px",
+    padding: "10px",
+    marginBottom: "10px",
+    boxSizing: "border-box"
+  }}
+/>
+
+<textarea
+  placeholder="Contract Terms"
+  rows="10"
+  value={contractTemplateForm.terms}
+  onChange={(e) =>
+    setContractTemplateForm({
+      ...contractTemplateForm,
+      terms: e.target.value
+    })
+  }
+  style={{
+    width: "100%",
+    maxWidth: "600px",
+    padding: "10px",
+    marginBottom: "10px",
+    boxSizing: "border-box"
+  }}
+/>
+
+<div
+  style={{
+    width: "100%",
+    maxWidth: "600px",
+    display: "flex",
+    justifyContent: "center",
+    margin: "0 auto"
+  }}
+>
+  <button
+    type="button"
+    onClick={saveContractTemplate}
+    style={{
+      padding: "10px 16px",
+      borderRadius: "8px",
+      border: "none",
+      backgroundColor: "#2563eb",
+      color: "white",
+      cursor: "pointer",
+      fontWeight: "600"
+    }}
+  >
+    Save Contract Template
+  </button>
+</div>
+
+<div style={{ marginTop: "20px" }}>
+  {contractTemplates.length === 0 ? (
+    <p style={{ color: "#64748b" }}>
+      No contract templates saved yet.
+    </p>
+  ) : (
+    contractTemplates.map((template) => (
+      <div
+        key={template.id}
+        style={{
+          maxWidth: "600px",
+          padding: "15px",
+          marginBottom: "10px",
+          backgroundColor: "#f8fafc",
+          border: "1px solid #e2e8f0",
+          borderRadius: "10px"
+        }}
+      >
+        <strong>{template.businessType}</strong>
+        <div style={{ marginTop: "5px" }}>
+          {template.title}
+        </div>
+
+<button
+  type="button"
+  onClick={() => editContractTemplate(template)}
+  style={{
+    marginTop: "10px",
+    padding: "8px 14px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#2563eb",
+    color: "white",
+    cursor: "pointer"
+  }}
+>
+  Edit Template
+</button>
+
+      </div>
+    ))
+  )}
+</div>
 
 {showCorporateCustomerForm && (
   <div
@@ -2798,6 +3019,38 @@ if (customerLogoFile) {
 
 {contractCustomerId === customer.id && (
  <div style={{ marginTop: "15px" }}>
+ 
+ <select
+  defaultValue=""
+  onChange={(e) => {
+    const selectedTemplate = contractTemplates.find(
+      (template) => template.id === e.target.value
+    );
+
+    if (selectedTemplate) {
+      setContractForm({
+        ...contractForm,
+        title: selectedTemplate.title || "",
+        terms: selectedTemplate.terms || ""
+      });
+    }
+  }}
+  style={{
+    width: "100%",
+    padding: "10px",
+    marginBottom: "10px",
+    boxSizing: "border-box"
+  }}
+>
+  <option value="">Select Contract Template</option>
+
+  {contractTemplates.map((template) => (
+    <option key={template.id} value={template.id}>
+      {template.businessType} - {template.title}
+    </option>
+  ))}
+</select>
+ 
  <input
     type="text"
     placeholder="Contract Title"

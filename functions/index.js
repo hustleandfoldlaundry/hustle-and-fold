@@ -1,3 +1,5 @@
+/* global __dirname */
+
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -9,6 +11,8 @@ const {getFirestore} = require("firebase-admin/firestore");
 const {getStorage} = require("firebase-admin/storage");
 const {PDFDocument, StandardFonts, rgb} = require("pdf-lib");
 const {Buffer} = require("node:buffer");
+const fs = require("node:fs");
+const path = require("node:path");
 
 initializeApp({ storageBucket: "hustleandfold-4908a.firebasestorage.app" });
 
@@ -760,6 +764,10 @@ async function createSignedContractPdf(
     StandardFonts.Helvetica
   );
 
+const logoPath = path.join(__dirname, "HF Logo.png");
+const logoBytes = fs.readFileSync(logoPath);
+const logoImage = await pdfDocument.embedPng(logoBytes);
+
   const boldFont = await pdfDocument.embedFont(
     StandardFonts.HelveticaBold
   );
@@ -771,6 +779,17 @@ async function createSignedContractPdf(
   const bodySize = 11;
   const lineHeight = 17;
   let y = 735;
+
+  const logoDimensions = logoImage.scale(0.09);
+
+page.drawImage(logoImage, {
+  x: pageWidth - margin - logoDimensions.width,
+  y: 735 - logoDimensions.height,
+  width: logoDimensions.width,
+  height: logoDimensions.height
+});
+
+y = 735 - logoDimensions.height - 20;
 
   function cleanText(value) {
     return String(value || "")
@@ -836,24 +855,42 @@ async function createSignedContractPdf(
     }
   }
 
-  drawLine(
-    "HUSTLE & FOLD LAUNDRY SERVICES",
-    {
-      bold: true,
-      size: 18,
-      spacing: 28,
-      color: rgb(0.12, 0.23, 0.54)
-    }
+  const businessHeading = "HUSTLE & FOLD LAUNDRY SERVICES";
+const businessHeadingSize = 13.5;
+const businessHeadingWidth =
+  boldFont.widthOfTextAtSize(
+    businessHeading,
+    businessHeadingSize
   );
 
-  drawLine(
-    "SIGNED CORPORATE SERVICE AGREEMENT",
-    {
-      bold: true,
-      size: 15,
-      spacing: 30
-    }
+page.drawText(businessHeading, {
+  x: (pageWidth - businessHeadingWidth) / 2,
+  y,
+  size: businessHeadingSize,
+  font: boldFont,
+  color: rgb(0.12, 0.23, 0.54)
+});
+
+y -= 28;
+
+const agreementHeading =
+  "SIGNED CORPORATE SERVICE AGREEMENT";
+const agreementHeadingSize = 11.25;
+const agreementHeadingWidth =
+  boldFont.widthOfTextAtSize(
+    agreementHeading,
+    agreementHeadingSize
   );
+
+page.drawText(agreementHeading, {
+  x: (pageWidth - agreementHeadingWidth) / 2,
+  y,
+  size: agreementHeadingSize,
+  font: boldFont,
+  color: rgb(0.12, 0.18, 0.3)
+});
+
+y -= 30;
 
   drawLine(`Company: ${companyName}`);
   drawLine(`Contract: ${contract.title}`);
