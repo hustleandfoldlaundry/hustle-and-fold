@@ -19,4 +19,5 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app, "us-central1");
+export const functionsWest = getFunctions(app, "us-west2");
 export { collection, addDoc };

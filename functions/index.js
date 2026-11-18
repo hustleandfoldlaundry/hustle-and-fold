@@ -1,4 +1,4 @@
-/* global __dirname */
+/* global __dirname, fetch */
 
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
@@ -18,6 +18,445 @@ initializeApp({ storageBucket: "hustleandfold-4908a.firebasestorage.app" });
 
 const {Resend} = require("resend");
 const resendApiKey = defineSecret("RESEND_API_KEY");
+const paypalClientId = defineSecret("PAYPAL_CLIENT_ID");
+const paypalClientSecret = defineSecret("PAYPAL_CLIENT_SECRET");
+
+async function getPayPalAccessToken() {
+  const credentials = Buffer.from(
+    `${paypalClientId.value()}:${paypalClientSecret.value()}`
+  ).toString("base64");
+
+  const response = await fetch(
+    "https://api-m.sandbox.paypal.com/v1/oauth2/token",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${credentials}`,
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: "grant_type=client_credentials"
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+
+    throw new Error(
+      `PayPal authentication failed: ${errorText}`
+    );
+  }
+
+  const data = await response.json();
+
+  return data.access_token;
+}
+
+exports.getPayPalInvoiceStatus = onCall(
+  {
+    region: "us-west2",
+    secrets: [
+      paypalClientId,
+      paypalClientSecret
+    ],
+    maxInstances: 10
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError(
+        "unauthenticated",
+        "You must be signed in to check invoice status."
+      );
+    }
+
+    const paypalInvoiceId =
+      request.data?.paypalInvoiceId;
+
+    if (!paypalInvoiceId) {
+      throw new HttpsError(
+        "invalid-argument",
+        "PayPal invoice ID is required."
+      );
+    }
+
+    try {
+      const accessToken =
+        await getPayPalAccessToken();
+
+      const response = await fetch(
+        `https://api-m.sandbox.paypal.com/v2/invoicing/invoices/${paypalInvoiceId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      if (!response.ok) {
+        const errorText =
+          await response.text();
+
+        throw new Error(
+          `PayPal invoice status lookup failed: ${errorText}`
+        );
+      }
+
+      const invoice = await response.json();
+
+      logger.info(
+        "PayPal invoice status retrieved.",
+        {
+          paypalInvoiceId,
+          status: invoice.status
+        }
+      );
+
+      return {
+        success: true,
+        paypalInvoiceId: invoice.id,
+        status: invoice.status,
+        invoiceNumber:
+          invoice.detail?.invoice_number || ""
+      };
+    } catch (error) {
+      logger.error(
+        "PayPal invoice status lookup failed.",
+        {
+          message: error.message
+        }
+      );
+
+      throw new HttpsError(
+        "internal",
+        error.message ||
+          "Unable to retrieve the PayPal invoice status."
+      );
+    }
+  }
+);
+
+exports.remindPayPalInvoice = onCall(
+  {
+    region: "us-west2",
+    secrets: [
+      paypalClientId,
+      paypalClientSecret
+    ],
+    maxInstances: 10
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError(
+        "unauthenticated",
+        "You must be signed in to send an invoice reminder."
+      );
+    }
+
+    const paypalInvoiceId =
+      request.data?.paypalInvoiceId;
+
+    if (!paypalInvoiceId) {
+      throw new HttpsError(
+        "invalid-argument",
+        "PayPal invoice ID is required."
+      );
+    }
+
+    try {
+      const accessToken =
+        await getPayPalAccessToken();
+
+      const response = await fetch(
+        `https://api-m.sandbox.paypal.com/v2/invoicing/invoices/${paypalInvoiceId}/remind`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            send_to_recipient: true,
+            send_to_invoicer: true
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errorText =
+          await response.text();
+
+        throw new Error(
+          `PayPal invoice reminder failed: ${errorText}`
+        );
+      }
+
+      logger.info(
+        "PayPal invoice reminder sent.",
+        {
+          paypalInvoiceId
+        }
+      );
+
+      return {
+        success: true,
+        paypalInvoiceId
+      };
+    } catch (error) {
+      logger.error(
+        "PayPal invoice reminder failed.",
+        {
+          message: error.message
+        }
+      );
+
+      throw new HttpsError(
+        "internal",
+        error.message ||
+          "Unable to send the PayPal invoice reminder."
+      );
+    }
+  }
+);
+
+exports.createPayPalInvoice = onCall(
+  {
+    region: "us-west2",
+    secrets: [
+      paypalClientId,
+      paypalClientSecret
+    ],
+    maxInstances: 10
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError(
+        "unauthenticated",
+        "You must be signed in to create an invoice."
+      );
+    }
+
+    const invoiceData = request.data;
+
+    if (
+      !invoiceData?.customerEmail ||
+      !invoiceData?.invoiceNumber ||
+      !invoiceData?.invoiceDate ||
+      !invoiceData?.amount
+    ) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Required invoice information is missing."
+      );
+    }
+
+    const invoiceAmount = Number(invoiceData.amount);
+
+    if (
+      !Number.isFinite(invoiceAmount) ||
+      invoiceAmount <= 0
+    ) {
+      throw new HttpsError(
+        "invalid-argument",
+        "The invoice amount must be greater than zero."
+      );
+    }
+
+    try {
+      const accessToken =
+        await getPayPalAccessToken();
+
+const invoiceNumberResponse = await fetch(
+  "https://api-m.sandbox.paypal.com/v2/invoicing/generate-next-invoice-number",
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    }
+  }
+);
+
+if (!invoiceNumberResponse.ok) {
+  const errorText = await invoiceNumberResponse.text();
+
+  throw new Error(
+    `PayPal invoice number generation failed: ${errorText}`
+  );
+}
+
+const invoiceNumberData =
+  await invoiceNumberResponse.json();
+
+const paypalInvoiceNumber =
+  invoiceNumberData.invoice_number;
+
+
+      const createResponse = await fetch(
+        "https://api-m.sandbox.paypal.com/v2/invoicing/invoices",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify({
+            detail: {
+              invoice_number:
+                paypalInvoiceNumber,
+              invoice_date:
+                invoiceData.invoiceDate,
+              currency_code: "USD",
+              note:
+                invoiceData.notes ||
+                "Thank you for choosing Hustle & Fold Laundry Services.",
+              payment_term: invoiceData.dueDate
+                ? {
+                    term_type: "DUE_ON_DATE_SPECIFIED",
+                    due_date: invoiceData.dueDate
+                  }
+                : {
+                    term_type: "DUE_ON_RECEIPT"
+                  }
+            },
+            invoicer: {
+  business_name: "Hustle & Fold Laundry Services"
+},
+            primary_recipients: [
+              {
+                billing_info: {
+                  email_address:
+                    invoiceData.customerEmail
+                }
+              }
+            ],
+            items: [
+              {
+                name:
+                  invoiceData.billingPeriod
+                    ? `Laundry Services - ${invoiceData.billingPeriod}`
+                    : "Laundry Services",
+                quantity: "1",
+                unit_amount: {
+                  currency_code: "USD",
+                  value:
+                    invoiceAmount.toFixed(2)
+                }
+              }
+            ]
+          })
+        }
+      );
+
+      if (!createResponse.ok) {
+        const errorText =
+          await createResponse.text();
+
+        throw new Error(
+          `PayPal invoice creation failed: ${errorText}`
+        );
+      }
+
+      const createdInvoice =
+        await createResponse.json();
+
+      if (!createdInvoice.id) {
+        throw new Error(
+          "PayPal did not return an invoice ID."
+        );
+      }
+
+      const sendResponse = await fetch(
+        `https://api-m.sandbox.paypal.com/v2/invoicing/invoices/${createdInvoice.id}/send`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            send_to_recipient: true,
+            send_to_invoicer: true
+          })
+        }
+      );
+
+      if (!sendResponse.ok) {
+        const errorText =
+          await sendResponse.text();
+
+        throw new Error(
+          `PayPal invoice sending failed: ${errorText}`
+        );
+      }
+
+      logger.info(
+        "PayPal invoice created and sent.",
+        {
+          paypalInvoiceId: createdInvoice.id,
+          invoiceNumber:
+            invoiceData.invoiceNumber,
+          customerEmail:
+            invoiceData.customerEmail
+        }
+      );
+
+const verifyResponse = await fetch(
+  `https://api-m.sandbox.paypal.com/v2/invoicing/invoices/${createdInvoice.id}`,
+  {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    }
+  }
+);
+
+if (!verifyResponse.ok) {
+  const errorText = await verifyResponse.text();
+
+  throw new Error(
+    `PayPal invoice verification failed: ${errorText}`
+  );
+}
+
+const verifiedInvoice = await verifyResponse.json();
+
+logger.info(
+  "PayPal invoice verification result.",
+  {
+    paypalInvoiceId: verifiedInvoice.id,
+    status: verifiedInvoice.status,
+    invoiceNumber: verifiedInvoice.detail?.invoice_number
+  }
+);
+
+      return {
+        success: true,
+        paypalInvoiceId: createdInvoice.id,
+        paymentUrl:
+          verifiedInvoice.detail?.metadata?.recipient_view_url,
+        invoiceNumber:
+          verifiedInvoice.detail?.invoice_number,
+        status: "UNPAID"
+      };
+    } catch (error) {
+      logger.error(
+        "PayPal invoice creation failed.",
+        {
+          message: error.message
+        }
+      );
+
+      throw new HttpsError(
+        "internal",
+        error.message ||
+          "Unable to create the PayPal invoice."
+      );
+    }
+  }
+);
 
 exports.sendNewOrderEmail = onDocumentCreated(
   {

@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { db, storage, functions } from "../firebase";
-import { httpsCallable } from "firebase/functions";
+import {
+  db,
+  storage,
+  functions,
+  functionsWest
+} from "../firebase";import { httpsCallable } from "firebase/functions";
 import { collection, addDoc, getDocs, doc, updateDoc, setDoc, getDoc, deleteDoc } from "@firebase/firestore/lite";import { useNavigate } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -65,7 +69,11 @@ if (!isLoggedIn) {
   const [convertingLeadId, setConvertingLeadId] = useState(null);
   const [serviceHistory, setServiceHistory] = useState([]);
   const [serviceHistoryForm, setServiceHistoryForm] = useState({ serviceDate: "", serviceType: "", serviceStatus: "", volume: "", amountCharged: "", notes: "" });
+  const [corporateInvoices, setCorporateInvoices] = useState([]);
+  const [invoiceCustomerId, setInvoiceCustomerId] = useState(null);
   const [invoiceForm, setInvoiceForm] = useState({ invoiceNumber: "", invoiceDate: "", dueDate: "", amount: "", status: "Unpaid", billingPeriod: "", notes: "" });
+  const [savedInvoiceId, setSavedInvoiceId] = useState(null);
+  const [paypalPaymentUrl, setPaypalPaymentUrl] = useState("");
   const [editingCorporateCustomerId, setEditingCorporateCustomerId] = useState(null);
   const [corporateProfileForm, setCorporateProfileForm] = useState({ companyName: "", contactName: "", phone: "", businessType: "", businessAddress: "" });
 
@@ -156,6 +164,23 @@ async function loadCorporateCustomers() {
  } catch (error) {
  console.error("Error loading corporate customers:", error);
  }
+}
+
+async function loadCorporateInvoices() {
+  try {
+    const snapshot = await getDocs(
+      collection(db, "corporateInvoices")
+    );
+
+    const data = snapshot.docs.map((docItem) => ({
+      id: docItem.id,
+      ...docItem.data()
+    }));
+
+    setCorporateInvoices(data);
+  } catch (error) {
+    console.error("Error loading corporate invoices:", error);
+  }
 }
 
 async function saveContractTemplate() {
@@ -262,6 +287,235 @@ async function sendCorporateCustomerInvite(customerId) {
  console.error("Error sending corporate customer invitation:", error);
  alert(error?.message || "Unable to send the login invitation.");
  }
+}
+
+async function saveCorporateInvoice(customer) {
+  try {
+    if (
+      !invoiceForm.invoiceNumber.trim() ||
+      !invoiceForm.invoiceDate ||
+      !invoiceForm.dueDate ||
+      !invoiceForm.amount
+    ) {
+      alert("Please complete the required invoice fields.");
+      return;
+    }
+
+    const invoiceDocRef = await addDoc( collection(db, "corporateInvoices"), {
+      corporateCustomerId: customer.id,
+      companyName: customer.companyName || "",
+      customerEmail: customer.email || "",
+      invoiceNumber: invoiceForm.invoiceNumber.trim(),
+      invoiceDate: invoiceForm.invoiceDate,
+      dueDate: invoiceForm.dueDate,
+      amount: invoiceForm.amount,
+      status: invoiceForm.status,
+      billingPeriod: invoiceForm.billingPeriod.trim(),
+      notes: invoiceForm.notes.trim(),
+      createdAt: new Date().toISOString()
+    });
+
+    setPaypalPaymentUrl("");
+    setSavedInvoiceId(invoiceDocRef.id);
+    console.log("Saved invoice document ID:", invoiceDocRef.id);
+
+    alert("Invoice saved successfully.");
+    await loadCorporateInvoices();
+
+    setInvoiceCustomerId(null);
+
+    setInvoiceForm({
+      invoiceNumber: "",
+      invoiceDate: "",
+      dueDate: "",
+      amount: "",
+      status: "Unpaid",
+      billingPeriod: "",
+      notes: ""
+    });
+  } catch (error) {
+    console.error("Error saving corporate invoice:", error);
+    alert("Unable to save the invoice. Please try again.");
+  }
+}
+
+async function syncPayPalInvoiceStatus(invoice) {
+  try {
+    if (!invoice.paypalInvoiceId) {
+      alert("This invoice does not have a PayPal invoice ID.");
+      return;
+    }
+
+    const getInvoiceStatus = httpsCallable(
+      functionsWest,
+      "getPayPalInvoiceStatus"
+    );
+
+    const result = await getInvoiceStatus({
+      paypalInvoiceId: invoice.paypalInvoiceId
+    });
+
+    if (result.data?.success) {
+      await updateDoc(
+        doc(db, "corporateInvoices", invoice.id),
+        {
+          status: result.data.status,
+          paypalInvoiceNumber:
+            result.data.invoiceNumber ||
+            invoice.paypalInvoiceNumber ||
+            ""
+        }
+      );
+
+      await loadCorporateInvoices();
+
+      alert(
+        `Invoice status updated: ${result.data.status}`
+      );
+    }
+  } catch (error) {
+    console.error(
+      "Error syncing PayPal invoice status:",
+      error
+    );
+
+    alert(
+      error?.message ||
+        "Unable to update the PayPal invoice status."
+    );
+  }
+}
+
+async function resendPayPalInvoiceReminder(invoice) {
+  try {
+    if (!invoice.paypalInvoiceId) {
+      alert("This invoice does not have a PayPal invoice ID.");
+      return;
+    }
+
+    const sendReminder = httpsCallable(
+      functionsWest,
+      "remindPayPalInvoice"
+    );
+
+    const result = await sendReminder({
+      paypalInvoiceId: invoice.paypalInvoiceId
+    });
+
+    if (result.data?.success) {
+      alert("PayPal invoice reminder sent successfully.");
+    }
+  } catch (error) {
+    console.error(
+      "Error sending PayPal invoice reminder:",
+      error
+    );
+
+    alert(
+      error?.message ||
+        "Unable to send the PayPal invoice reminder."
+    );
+  }
+}
+
+async function sendSavedInvoiceToPayPal(customer, invoice) {
+  try {
+    const createInvoice = httpsCallable(
+      functionsWest,
+      "createPayPalInvoice"
+    );
+
+    const result = await createInvoice({
+      customerEmail: customer.email,
+      invoiceNumber: invoice.invoiceNumber,
+      invoiceDate: invoice.invoiceDate,
+      dueDate: invoice.dueDate,
+      amount: invoice.amount,
+      billingPeriod: invoice.billingPeriod || "",
+      notes: invoice.notes || ""
+    });
+
+    if (result.data?.success) {
+      await updateDoc(
+        doc(db, "corporateInvoices", invoice.id),
+        {
+          paypalInvoiceId: result.data.paypalInvoiceId || "",
+          paypalInvoiceNumber: result.data.invoiceNumber || "",
+          paypalPaymentUrl: result.data.paymentUrl || "",
+          status: "Unpaid"
+        }
+      );
+
+      await loadCorporateInvoices();
+
+      alert(
+        `PayPal invoice sent successfully.\nInvoice Number: ${result.data.invoiceNumber}`
+      );
+    }
+  } catch (error) {
+    console.error(
+      "Error sending saved invoice to PayPal:",
+      error
+    );
+
+    alert(
+      error?.message ||
+        "Unable to send the invoice to PayPal."
+    );
+  }
+}
+
+async function testPayPalInvoiceConnection(customer) {
+  try {
+    const createInvoice = httpsCallable(
+  functionsWest,
+  "createPayPalInvoice"
+);
+
+    const result = await createInvoice({
+  customerEmail: customer.email,
+  invoiceNumber: invoiceForm.invoiceNumber,
+  invoiceDate: invoiceForm.invoiceDate,
+  dueDate: invoiceForm.dueDate,
+  amount: invoiceForm.amount,
+  billingPeriod: invoiceForm.billingPeriod,
+  notes: invoiceForm.notes
+});
+
+    if (result.data?.success) {
+    setPaypalPaymentUrl(result.data.paymentUrl || "");
+
+    if (savedInvoiceId) {
+  await updateDoc(
+    doc(db, "corporateInvoices", savedInvoiceId),
+    {
+      paypalInvoiceId: result.data.paypalInvoiceId || "",
+      paypalInvoiceNumber: result.data.invoiceNumber || "",
+      paypalPaymentUrl: result.data.paymentUrl || "",
+      status: "Unpaid"
+    }
+  );
+
+  await loadCorporateInvoices();
+}
+
+
+  alert(
+    `PayPal invoice sent successfully.\nInvoice Number: ${result.data.invoiceNumber}`
+  );
+}
+
+  } catch (error) {
+    console.error(
+      "PayPal invoice connection error:",
+      error
+    );
+
+    alert(
+      error?.message ||
+      "Unable to connect to PayPal."
+    );
+  }
 }
 
 async function saveCorporateProfileChanges(customerId) {
@@ -632,6 +886,7 @@ setCorporateLeads(corporateData);
     loadCorporateCustomers();
     loadCorporateContracts();
     loadContractTemplates();
+    loadCorporateInvoices();
   }, []);
 
   useEffect(() => {
@@ -2166,6 +2421,229 @@ if (customerLogoFile) {
   + Add Service Record
 </button>
 
+<button
+  type="button"
+  onClick={() => setInvoiceCustomerId(customer.id)}
+  style={{
+    marginTop: "10px",
+    marginLeft: "10px",
+    padding: "10px 16px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#7c3aed",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600"
+  }}
+>
+  + Create Invoice
+</button>
+
+{invoiceCustomerId === customer.id && (
+  <div
+    style={{
+      marginTop: "20px",
+      padding: "20px",
+      backgroundColor: "#f8fafc",
+      borderRadius: "10px",
+      border: "1px solid #e2e8f0"
+    }}
+  >
+    <h4
+      style={{
+        marginTop: "0",
+        color: "#1e3a8a"
+      }}
+    >
+      Create PayPal Invoice
+    </h4>
+
+    <p>
+      <strong>Customer:</strong> {customer.companyName}
+    </p>
+
+    <p>
+      <strong>Email:</strong> {customer.email}
+    </p>
+  </div>
+)}
+
+{invoiceCustomerId === customer.id && (
+  <>
+<label>
+  Invoice Number
+</label>
+
+<input
+  type="text"
+  placeholder="Invoice Number"
+  value={invoiceForm.invoiceNumber}
+  onChange={(e) =>
+    setInvoiceForm({
+      ...invoiceForm,
+      invoiceNumber: e.target.value
+    })
+  }
+  style={{
+    width: "100%",
+    padding: "10px",
+    marginTop: "5px",
+    marginBottom: "12px",
+    boxSizing: "border-box"
+  }}
+/>
+
+<label>
+  Invoice Date
+</label>
+
+<input
+  type="date"
+  value={invoiceForm.invoiceDate}
+  onChange={(e) =>
+    setInvoiceForm({
+      ...invoiceForm,
+      invoiceDate: e.target.value
+    })
+  }
+  style={{
+    width: "100%",
+    padding: "10px",
+    marginTop: "5px",
+    marginBottom: "12px",
+    boxSizing: "border-box"
+  }}
+/>
+
+<label>
+  Due Date
+</label>
+
+<input
+  type="date"
+  value={invoiceForm.dueDate}
+  onChange={(e) =>
+    setInvoiceForm({
+      ...invoiceForm,
+      dueDate: e.target.value
+    })
+  }
+  style={{
+    width: "100%",
+    padding: "10px",
+    marginTop: "5px",
+    marginBottom: "12px",
+    boxSizing: "border-box"
+  }}
+/>
+
+<label>
+  Billing Period
+</label>
+
+<input
+  type="text"
+  placeholder="Example: October 2026"
+  value={invoiceForm.billingPeriod}
+  onChange={(e) =>
+    setInvoiceForm({
+      ...invoiceForm,
+      billingPeriod: e.target.value
+    })
+  }
+  style={{
+    width: "100%",
+    padding: "10px",
+    marginTop: "5px",
+    marginBottom: "12px",
+    boxSizing: "border-box"
+  }}
+/>
+
+<label>
+  Invoice Amount
+</label>
+
+<input
+  type="number"
+  step="0.01"
+  min="0"
+  placeholder="0.00"
+  value={invoiceForm.amount}
+  onChange={(e) =>
+    setInvoiceForm({
+      ...invoiceForm,
+      amount: e.target.value
+    })
+  }
+  style={{
+    width: "100%",
+    padding: "10px",
+    marginTop: "5px",
+    marginBottom: "12px",
+    boxSizing: "border-box"
+  }}
+/>
+
+<label>
+  Invoice Notes
+</label>
+
+<textarea
+  placeholder="Optional notes for this invoice"
+  rows="4"
+  value={invoiceForm.notes}
+  onChange={(e) =>
+    setInvoiceForm({
+      ...invoiceForm,
+      notes: e.target.value
+    })
+  }
+  style={{
+    width: "100%",
+    padding: "10px",
+    marginTop: "5px",
+    marginBottom: "12px",
+    boxSizing: "border-box"
+  }}
+/>
+
+<button
+  type="button"
+  onClick={() => saveCorporateInvoice(customer)}
+  style={{
+    padding: "10px 16px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#16a34a",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600",
+    marginRight: "10px"
+  }}
+>
+  Save Invoice
+</button>
+
+<button
+  type="button"
+  onClick={() => testPayPalInvoiceConnection(customer)}
+  style={{
+    padding: "10px 16px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#0070ba",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600"
+  }}
+>
+  Test PayPal Connection
+</button>
+
+  </>
+)}
+
 {serviceHistoryCustomerId === customer.id &&
   serviceHistory.length > 0 && (
     <div
@@ -2251,6 +2729,185 @@ if (customerLogoFile) {
 ))}
     </div>
   )}
+
+{corporateInvoices.filter(
+  (invoice) => invoice.corporateCustomerId === customer.id
+).length > 0 && (
+  <div
+    style={{
+      marginTop: "20px",
+      padding: "20px",
+      backgroundColor: "#f8fafc",
+      borderRadius: "10px",
+      border: "1px solid #e2e8f0"
+    }}
+  >
+    <h4
+      style={{
+        marginTop: "0",
+        color: "#1e3a8a"
+      }}
+    >
+      Invoices
+    </h4>
+
+    {corporateInvoices
+      .filter(
+        (invoice) => invoice.corporateCustomerId === customer.id
+      )
+      .map((invoice) => (
+        <div
+          key={invoice.id}
+          style={{
+            marginBottom: "12px",
+            padding: "15px",
+            backgroundColor: "white",
+            borderRadius: "8px",
+            border: "1px solid #e2e8f0"
+          }}
+        >
+          <strong>
+  Invoice #{invoice.paypalInvoiceNumber || invoice.invoiceNumber}
+</strong>
+
+          <p>Invoice Date: {invoice.invoiceDate}</p>
+          <p>Due Date: {invoice.dueDate}</p>
+          <p>Amount: ${invoice.amount}</p>
+          <p>
+  Status:{" "}
+  <span
+    style={{
+      display: "inline-block",
+      padding: "4px 10px",
+      borderRadius: "999px",
+      fontWeight: "600",
+      fontSize: "13px",
+      backgroundColor:
+        invoice.status === "PAID"
+          ? "#dcfce7"
+          : invoice.status === "SENT" ||
+            invoice.status === "UNPAID"
+          ? "#dbeafe"
+          : invoice.status === "PARTIALLY_PAID"
+          ? "#fef3c7"
+          : invoice.status === "CANCELLED"
+          ? "#fee2e2"
+          : "#e2e8f0",
+      color:
+        invoice.status === "PAID"
+          ? "#166534"
+          : invoice.status === "SENT" ||
+            invoice.status === "UNPAID"
+          ? "#1e40af"
+          : invoice.status === "PARTIALLY_PAID"
+          ? "#92400e"
+          : invoice.status === "CANCELLED"
+          ? "#991b1b"
+          : "#475569"
+    }}
+  >
+    {invoice.status}
+  </span>
+</p>
+
+{!invoice.paypalInvoiceId && (
+
+          <button
+  type="button"
+  onClick={() => sendSavedInvoiceToPayPal(customer, invoice)}
+  style={{
+    marginTop: "8px",
+    padding: "8px 14px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#0070ba",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600"
+  }}
+>
+  Send PayPal Invoice
+</button>
+
+)}
+
+{invoice.paypalInvoiceId &&
+  invoice.status !== "PAID" && (
+  <button
+    type="button"
+    onClick={() => resendPayPalInvoiceReminder(invoice)}
+    style={{
+      marginTop: "8px",
+      padding: "8px 14px",
+      borderRadius: "8px",
+      border: "none",
+      backgroundColor: "#f59e0b",
+      color: "white",
+      cursor: "pointer",
+      fontWeight: "600"
+    }}
+  >
+    Resend Invoice Reminder
+  </button>
+)}
+
+{invoice.paypalInvoiceId && (
+  <button
+    type="button"
+    onClick={() => syncPayPalInvoiceStatus(invoice)}
+    style={{
+      marginTop: "8px",
+      marginLeft: "8px",
+      padding: "8px 14px",
+      borderRadius: "8px",
+      border: "none",
+      backgroundColor: "#2563eb",
+      color: "white",
+      cursor: "pointer",
+      fontWeight: "600"
+    }}
+  >
+    Update
+  </button>
+)}
+
+{invoice.paypalPaymentUrl && (
+  <button
+    type="button"
+    onClick={() =>
+      window.open(
+        invoice.paypalPaymentUrl,
+        "_blank",
+        "noopener,noreferrer"
+      )
+    }
+    style={{
+      marginTop: "8px",
+      marginLeft: "8px",
+      padding: "8px 14px",
+      borderRadius: "8px",
+      border: "none",
+      backgroundColor: "#16a34a",
+      color: "white",
+      cursor: "pointer",
+      fontWeight: "600"
+    }}
+  >
+    Open PayPal Invoice
+  </button>
+)}
+
+          {invoice.billingPeriod && (
+            <p>Billing Period: {invoice.billingPeriod}</p>
+          )}
+
+          {invoice.notes && (
+            <p>Notes: {invoice.notes}</p>
+          )}
+        </div>
+      ))}
+  </div>
+)}
 
 {serviceHistoryCustomerId === customer.id && (
   <div
