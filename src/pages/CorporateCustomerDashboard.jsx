@@ -1211,8 +1211,15 @@ contracts
       }}
     >
       <div style={{ color: "#334155", lineHeight: "1.6" }}>
-        Invoice record loaded.
-      </div>
+  <strong>
+    Invoice #{invoice.paypalInvoiceNumber || "Pending"}
+  </strong>
+
+  <p>Invoice Date: {invoice.invoiceDate}</p>
+  <p>Due Date: {invoice.dueDate}</p>
+  <p>Amount: ${invoice.amount}</p>
+  <p>Status: {invoice.status}</p>
+</div>
     </div>
   ))
 )}
