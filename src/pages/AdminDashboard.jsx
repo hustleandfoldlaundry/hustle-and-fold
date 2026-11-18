@@ -160,7 +160,9 @@ async function loadCorporateCustomers() {
      ...docItem.data()
  }));
 
- setCorporateCustomers(data);
+ setCorporateCustomers(
+  data.filter((customer) => customer.archived !== true)
+);
  } catch (error) {
  console.error("Error loading corporate customers:", error);
  }
@@ -275,6 +277,56 @@ async function loadCorporateContracts() {
  } catch (error) {
  console.error("Error loading corporate contracts:", error);
  }
+}
+
+async function archiveCorporateCustomer(customerId) {
+  try {
+    await updateDoc(
+      doc(db, "corporateCustomers", customerId),
+      {
+        archived: true,
+        archivedAt: new Date().toISOString()
+      }
+    );
+
+    await loadCorporateCustomers();
+
+    alert("Corporate customer archived successfully.");
+  } catch (error) {
+    console.error(
+      "Error archiving corporate customer:",
+      error
+    );
+
+    alert("Unable to archive the corporate customer.");
+  }
+}
+
+async function deleteCorporateCustomer(customerId, companyName) {
+  const confirmed = window.confirm(
+    `Permanently delete ${companyName || "this corporate customer"}? This action cannot be undone.`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    await deleteDoc(
+      doc(db, "corporateCustomers", customerId)
+    );
+
+    await loadCorporateCustomers();
+
+    alert("Corporate customer permanently deleted.");
+  } catch (error) {
+    console.error(
+      "Error deleting corporate customer:",
+      error
+    );
+
+    alert("Unable to delete the corporate customer.");
+  }
 }
 
 async function sendCorporateCustomerInvite(customerId) {
@@ -3414,6 +3466,47 @@ if (customerLogoFile) {
  }}
 >
  Send Login Invitation
+</button>
+
+<button
+  type="button"
+  onClick={() => archiveCorporateCustomer(customer.id)}
+  style={{
+    marginTop: "10px",
+    marginLeft: "10px",
+    padding: "10px 16px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#64748b",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600"
+  }}
+>
+  Archive Customer
+</button>
+
+<button
+  type="button"
+  onClick={() =>
+    deleteCorporateCustomer(
+      customer.id,
+      customer.companyName
+    )
+  }
+  style={{
+    marginTop: "10px",
+    marginLeft: "10px",
+    padding: "10px 16px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#dc2626",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600"
+  }}
+>
+  Delete Customer
 </button>
 
 <div style={{ marginTop: "20px", paddingTop: "15px", borderTop: "1px solid #e5e7eb" }}>
