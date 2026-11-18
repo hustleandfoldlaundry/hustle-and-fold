@@ -1688,3 +1688,114 @@ Open the Hustle & Fold Admin Dashboard for more information.
     );
   }
 );
+
+exports.syncPayPalInvoiceStatuses = onSchedule(
+  {
+    schedule: "every 30 minutes",
+    timeZone: "America/Los_Angeles",
+    region: "us-west2",
+    secrets: [
+      paypalClientId,
+      paypalClientSecret
+    ]
+  },
+  async () => {
+    const db = getFirestore();
+
+    try {
+      const accessToken =
+        await getPayPalAccessToken();
+
+      const invoicesSnapshot = await db
+        .collection("corporateInvoices")
+        .get();
+
+      let invoicesChecked = 0;
+      let invoicesUpdated = 0;
+
+      for (const invoiceDocument of invoicesSnapshot.docs) {
+        const invoice = invoiceDocument.data();
+
+        if (!invoice.paypalInvoiceId) {
+          continue;
+        }
+
+        invoicesChecked += 1;
+
+        try {
+          const response = await fetch(
+            `https://api-m.sandbox.paypal.com/v2/invoicing/invoices/${invoice.paypalInvoiceId}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json"
+              }
+            }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+
+            logger.error(
+              "Automatic PayPal invoice status lookup failed.",
+              {
+                invoiceDocumentId: invoiceDocument.id,
+                paypalInvoiceId: invoice.paypalInvoiceId,
+                error: errorText
+              }
+            );
+
+            continue;
+          }
+
+          const paypalInvoice = await response.json();
+          const paypalStatus = paypalInvoice.status;
+
+          if (
+            paypalStatus &&
+            paypalStatus !== invoice.status
+          ) {
+            await invoiceDocument.ref.update({
+              status: paypalStatus,
+              paypalInvoiceNumber:
+                paypalInvoice.detail?.invoice_number ||
+                invoice.paypalInvoiceNumber ||
+                "",
+              paypalStatusUpdatedAt:
+                new Date().toISOString()
+            });
+
+            invoicesUpdated += 1;
+          }
+        } catch (invoiceError) {
+          logger.error(
+            "Error syncing individual PayPal invoice.",
+            {
+              invoiceDocumentId: invoiceDocument.id,
+              paypalInvoiceId: invoice.paypalInvoiceId,
+              message: invoiceError.message
+            }
+          );
+        }
+      }
+
+      logger.info(
+        "Automatic PayPal invoice status sync completed.",
+        {
+          invoicesChecked,
+          invoicesUpdated
+        }
+      );
+    } catch (error) {
+      logger.error(
+        "Automatic PayPal invoice status sync failed.",
+        {
+          message: error.message
+        }
+      );
+
+      throw error;
+    }
+  }
+);
