@@ -292,7 +292,6 @@ async function sendCorporateCustomerInvite(customerId) {
 async function saveCorporateInvoice(customer) {
   try {
     if (
-      !invoiceForm.invoiceNumber.trim() ||
       !invoiceForm.invoiceDate ||
       !invoiceForm.dueDate ||
       !invoiceForm.amount
@@ -305,7 +304,7 @@ async function saveCorporateInvoice(customer) {
       corporateCustomerId: customer.id,
       companyName: customer.companyName || "",
       customerEmail: customer.email || "",
-      invoiceNumber: invoiceForm.invoiceNumber.trim(),
+      invoiceNumber: "",
       invoiceDate: invoiceForm.invoiceDate,
       dueDate: invoiceForm.dueDate,
       amount: invoiceForm.amount,
@@ -2470,28 +2469,6 @@ if (customerLogoFile) {
 
 {invoiceCustomerId === customer.id && (
   <>
-<label>
-  Invoice Number
-</label>
-
-<input
-  type="text"
-  placeholder="Invoice Number"
-  value={invoiceForm.invoiceNumber}
-  onChange={(e) =>
-    setInvoiceForm({
-      ...invoiceForm,
-      invoiceNumber: e.target.value
-    })
-  }
-  style={{
-    width: "100%",
-    padding: "10px",
-    marginTop: "5px",
-    marginBottom: "12px",
-    boxSizing: "border-box"
-  }}
-/>
 
 <label>
   Invoice Date

@@ -240,7 +240,6 @@ exports.createPayPalInvoice = onCall(
 
     if (
       !invoiceData?.customerEmail ||
-      !invoiceData?.invoiceNumber ||
       !invoiceData?.invoiceDate ||
       !invoiceData?.amount
     ) {
