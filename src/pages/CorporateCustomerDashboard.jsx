@@ -1218,7 +1218,69 @@ contracts
   <p>Invoice Date: {invoice.invoiceDate}</p>
   <p>Due Date: {invoice.dueDate}</p>
   <p>Amount: ${invoice.amount}</p>
-  <p>Status: {invoice.status}</p>
+  <p>
+  Status:{" "}
+  <span
+    style={{
+      display: "inline-block",
+      padding: "4px 10px",
+      borderRadius: "999px",
+      fontWeight: "600",
+      fontSize: "13px",
+      backgroundColor:
+        invoice.status === "PAID"
+          ? "#dcfce7"
+          : invoice.status === "SENT" ||
+            invoice.status === "UNPAID"
+          ? "#dbeafe"
+          : invoice.status === "PARTIALLY_PAID"
+          ? "#fef3c7"
+          : invoice.status === "CANCELLED"
+          ? "#fee2e2"
+          : "#e2e8f0",
+      color:
+        invoice.status === "PAID"
+          ? "#166534"
+          : invoice.status === "SENT" ||
+            invoice.status === "UNPAID"
+          ? "#1e40af"
+          : invoice.status === "PARTIALLY_PAID"
+          ? "#92400e"
+          : invoice.status === "CANCELLED"
+          ? "#991b1b"
+          : "#475569"
+    }}
+  >
+    {invoice.status}
+  </span>
+</p>
+
+{invoice.paypalPaymentUrl &&
+  invoice.status !== "PAID" && (
+    <button
+      type="button"
+      onClick={() =>
+        window.open(
+          invoice.paypalPaymentUrl,
+          "_blank",
+          "noopener,noreferrer"
+        )
+      }
+      style={{
+        marginTop: "10px",
+        padding: "10px 16px",
+        borderRadius: "8px",
+        border: "none",
+        backgroundColor: "#0070ba",
+        color: "white",
+        cursor: "pointer",
+        fontWeight: "600"
+      }}
+    >
+      View / Pay Invoice
+    </button>
+  )}
+
 </div>
     </div>
   ))
