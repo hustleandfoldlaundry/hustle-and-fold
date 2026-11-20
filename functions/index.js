@@ -310,7 +310,25 @@ const paypalInvoiceNumber =
               note:
                 invoiceData.notes ||
                 "Thank you for choosing Hustle & Fold Laundry Services.",
-              payment_term: invoiceData.dueDate
+              
+                terms_and_conditions: `CORPORATE INVOICE TERMS
+
+This invoice reflects services provided under the customer's Corporate Service Agreement with Hustle & Fold Laundry Services, including any additional services or charges authorized during the applicable billing period.
+
+Payment: Payment is due by the due date shown on this invoice.
+
+Past-Due Balances: Past-due accounts may be subject to suspension of service, delayed delivery, or other remedies provided under the Corporate Service Agreement.
+
+Questions or Disputes: Questions or disputes regarding invoice charges should be reported promptly for review. Any undisputed balance remains due according to the stated payment terms.
+
+Additional Charges: This invoice may include authorized additional services such as additional pickups or deliveries, express service, increased laundry volume, special handling, or other requested services.
+
+Service Agreement: Services, pricing, billing, pickup and delivery, and other applicable terms are governed by the customer's Corporate Service Agreement and the Terms and Conditions accepted by the customer.
+
+Hustle & Fold Laundry Services
+HustleAndFoldLaundry@gmail.com | (951) 291-8621`,
+              
+                payment_term: invoiceData.dueDate
                 ? {
                     term_type: "DUE_ON_DATE_SPECIFIED",
                     due_date: invoiceData.dueDate
@@ -330,20 +348,30 @@ const paypalInvoiceNumber =
                 }
               }
             ],
-            items: [
-              {
-                name:
-                  invoiceData.billingPeriod
-                    ? `Laundry Services - ${invoiceData.billingPeriod}`
-                    : "Laundry Services",
-                quantity: "1",
-                unit_amount: {
-                  currency_code: "USD",
-                  value:
-                    invoiceAmount.toFixed(2)
-                }
-              }
-            ]
+            items:
+  Array.isArray(invoiceData.items) &&
+  invoiceData.items.length > 0
+    ? invoiceData.items.map((item) => ({
+        name: item.name || "Laundry Service",
+        quantity: String(item.quantity || 1),
+        unit_amount: {
+          currency_code: "USD",
+          value: (
+            Number(item.unitPrice) || 0
+          ).toFixed(2)
+        }
+      }))
+    : [
+        {
+          name: "Laundry Services",
+          quantity: "1",
+          unit_amount: {
+            currency_code: "USD",
+            value:
+              invoiceAmount.toFixed(2)
+          }
+        }
+      ]
           })
         }
       );

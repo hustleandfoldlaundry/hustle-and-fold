@@ -72,6 +72,9 @@ if (!isLoggedIn) {
   const [corporateInvoices, setCorporateInvoices] = useState([]);
   const [invoiceCustomerId, setInvoiceCustomerId] = useState(null);
   const [invoiceForm, setInvoiceForm] = useState({ invoiceNumber: "", invoiceDate: "", dueDate: "", amount: "", status: "Unpaid", billingPeriod: "", notes: "" });
+  const [invoiceItems, setInvoiceItems] = useState([ { name: "", quantity: "1", unitPrice: "" }]);
+  const invoiceTotal = invoiceItems.reduce((total, item) => {const quantity = Number(item.quantity) || 0;
+  const unitPrice = Number(item.unitPrice) || 0; return total + quantity * unitPrice;}, 0);
   const [savedInvoiceId, setSavedInvoiceId] = useState(null);
   const [paypalPaymentUrl, setPaypalPaymentUrl] = useState("");
   const [editingCorporateCustomerId, setEditingCorporateCustomerId] = useState(null);
@@ -346,7 +349,8 @@ async function saveCorporateInvoice(customer) {
     if (
       !invoiceForm.invoiceDate ||
       !invoiceForm.dueDate ||
-      !invoiceForm.amount
+      invoiceTotal <= 0
+
     ) {
       alert("Please complete the required invoice fields.");
       return;
@@ -359,7 +363,8 @@ async function saveCorporateInvoice(customer) {
       invoiceNumber: "",
       invoiceDate: invoiceForm.invoiceDate,
       dueDate: invoiceForm.dueDate,
-      amount: invoiceForm.amount,
+      amount: invoiceTotal.toFixed(2),
+      items: invoiceItems,
       status: invoiceForm.status,
       billingPeriod: invoiceForm.billingPeriod.trim(),
       notes: invoiceForm.notes.trim(),
@@ -384,6 +389,15 @@ async function saveCorporateInvoice(customer) {
       billingPeriod: "",
       notes: ""
     });
+
+setInvoiceItems([
+  {
+    name: "",
+    quantity: "1",
+    unitPrice: ""
+  }
+]);
+
   } catch (error) {
     console.error("Error saving corporate invoice:", error);
     alert("Unable to save the invoice. Please try again.");
@@ -482,6 +496,7 @@ async function sendSavedInvoiceToPayPal(customer, invoice) {
       invoiceDate: invoice.invoiceDate,
       dueDate: invoice.dueDate,
       amount: invoice.amount,
+      items: invoice.items || [],
       billingPeriod: invoice.billingPeriod || "",
       notes: invoice.notes || ""
     });
@@ -2589,30 +2604,132 @@ if (customerLogoFile) {
   }}
 />
 
-<label>
-  Invoice Amount
-</label>
+<div
+  style={{
+    marginBottom: "20px",
+    padding: "15px",
+    backgroundColor: "#f8fafc",
+    borderRadius: "10px",
+    border: "1px solid #e2e8f0"
+  }}
+>
+  <h4 style={{ marginTop: "0" }}>
+    Invoice Line Items
+  </h4>
 
-<input
-  type="number"
-  step="0.01"
-  min="0"
-  placeholder="0.00"
-  value={invoiceForm.amount}
-  onChange={(e) =>
-    setInvoiceForm({
-      ...invoiceForm,
-      amount: e.target.value
-    })
+  {invoiceItems.map((item, index) => (
+    <div
+      key={index}
+      style={{
+        marginBottom: "15px",
+        paddingBottom: "15px",
+        borderBottom: "1px solid #e2e8f0"
+      }}
+    >
+      <label>Service / Item Name</label>
+
+      <input
+        type="text"
+        placeholder="Example: Wash & Fold"
+        value={item.name}
+        onChange={(e) => {
+          const updatedItems = [...invoiceItems];
+          updatedItems[index].name = e.target.value;
+          setInvoiceItems(updatedItems);
+        }}
+        style={{
+          width: "100%",
+          padding: "10px",
+          marginTop: "5px",
+          marginBottom: "12px",
+          boxSizing: "border-box"
+        }}
+      />
+
+      <label>Quantity</label>
+
+      <input
+        type="number"
+        min="0"
+        step="0.01"
+        value={item.quantity}
+        onChange={(e) => {
+          const updatedItems = [...invoiceItems];
+          updatedItems[index].quantity = e.target.value;
+          setInvoiceItems(updatedItems);
+        }}
+        style={{
+          width: "100%",
+          padding: "10px",
+          marginTop: "5px",
+          marginBottom: "12px",
+          boxSizing: "border-box"
+        }}
+      />
+
+      <label>Rate / Unit Price</label>
+
+      <input
+        type="number"
+        min="0"
+        step="0.01"
+        placeholder="0.00"
+        value={item.unitPrice}
+        onChange={(e) => {
+          const updatedItems = [...invoiceItems];
+          updatedItems[index].unitPrice = e.target.value;
+          setInvoiceItems(updatedItems);
+        }}
+        style={{
+          width: "100%",
+          padding: "10px",
+          marginTop: "5px",
+          marginBottom: "12px",
+          boxSizing: "border-box"
+        }}
+      />
+    </div>
+  ))}
+
+ <button
+  type="button"
+  onClick={() =>
+    setInvoiceItems([
+      ...invoiceItems,
+      {
+        name: "",
+        quantity: "1",
+        unitPrice: ""
+      }
+    ])
   }
   style={{
-    width: "100%",
-    padding: "10px",
-    marginTop: "5px",
-    marginBottom: "12px",
-    boxSizing: "border-box"
+    padding: "8px 14px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#2563eb",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600"
   }}
-/>
+>
+  + Add Line Item
+</button>
+
+</div>
+<div
+  style={{
+    marginBottom: "12px",
+    padding: "12px",
+    backgroundColor: "#ecfdf5",
+    border: "1px solid #bbf7d0",
+    borderRadius: "8px"
+  }}
+>
+  <strong>
+    Invoice Total: ${invoiceTotal.toFixed(2)}
+  </strong>
+</div>
 
 <label>
   Invoice Notes
