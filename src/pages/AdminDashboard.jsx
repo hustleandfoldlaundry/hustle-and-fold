@@ -2688,6 +2688,31 @@ if (customerLogoFile) {
           boxSizing: "border-box"
         }}
       />
+
+        {invoiceItems.length > 1 && (
+  <button
+    type="button"
+    onClick={() =>
+      setInvoiceItems(
+        invoiceItems.filter(
+          (_, itemIndex) => itemIndex !== index
+        )
+      )
+    }
+    style={{
+      padding: "7px 12px",
+      borderRadius: "8px",
+      border: "none",
+      backgroundColor: "#dc2626",
+      color: "white",
+      cursor: "pointer",
+      fontWeight: "600"
+    }}
+  >
+    Remove Line Item
+  </button>
+)}
+
     </div>
   ))}
 
