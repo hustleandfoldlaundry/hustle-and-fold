@@ -72,13 +72,76 @@ if (!isLoggedIn) {
   const [corporateInvoices, setCorporateInvoices] = useState([]);
   const [invoiceCustomerId, setInvoiceCustomerId] = useState(null);
   const [invoiceForm, setInvoiceForm] = useState({ invoiceNumber: "", invoiceDate: "", dueDate: "", amount: "", status: "Unpaid", billingPeriod: "", notes: "" });
-  const [invoiceItems, setInvoiceItems] = useState([ { name: "", quantity: "1", unitPrice: "" }]);
-  const invoiceTotal = invoiceItems.reduce((total, item) => {const quantity = Number(item.quantity) || 0;
-  const unitPrice = Number(item.unitPrice) || 0; return total + quantity * unitPrice;}, 0);
+  const [invoiceItems, setInvoiceItems] = useState([
+  {
+    description: "",
+    quantity: 1,
+    unitPrice: "",
+  },
+]);
+  const [invoiceDiscount, setInvoiceDiscount] = useState({
+  type: "percent",
+  value: "",
+});
+
+const invoiceSubtotal = invoiceItems.reduce((total, item) => {
+  const quantity = Number(item.quantity) || 0;
+  const unitPrice = Number(item.unitPrice) || 0;
+
+  return total + quantity * unitPrice;
+}, 0);
+
+const discountValue = Number(invoiceDiscount.value) || 0;
+
+const invoiceDiscountAmount =
+  invoiceDiscount.type === "percent"
+    ? invoiceSubtotal * (discountValue / 100)
+    : discountValue;
+
+const invoiceTotal = Math.max(
+  invoiceSubtotal - invoiceDiscountAmount,
+  0
+);
   const [savedInvoiceId, setSavedInvoiceId] = useState(null);
+  const [editingInvoiceId, setEditingInvoiceId] = useState(null);
   const [paypalPaymentUrl, setPaypalPaymentUrl] = useState("");
   const [editingCorporateCustomerId, setEditingCorporateCustomerId] = useState(null);
   const [corporateProfileForm, setCorporateProfileForm] = useState({ companyName: "", contactName: "", phone: "", businessType: "", businessAddress: "" });
+
+function startEditingInvoice(customer, invoice) {
+  setEditingInvoiceId(invoice.id);
+  setInvoiceCustomerId(customer.id);
+
+  setInvoiceForm({
+    invoiceNumber: invoice.invoiceNumber || "",
+    invoiceDate: invoice.invoiceDate || "",
+    dueDate: invoice.dueDate || "",
+    amount: invoice.amount || "",
+    status: invoice.status || "Unpaid",
+    billingPeriod: invoice.billingPeriod || "",
+    notes: invoice.notes || ""
+  });
+
+  setInvoiceItems(
+    Array.isArray(invoice.items) && invoice.items.length > 0
+      ? invoice.items
+      : [
+          {
+            name: "",
+            quantity: "1",
+            unitPrice: ""
+          }
+        ]
+  );
+
+  setInvoiceDiscount({
+    type: invoice.discountType || "percent",
+    value:
+      invoice.discountValue !== undefined
+        ? String(invoice.discountValue)
+        : ""
+  });
+}
 
 async function createCorporateCustomer() {
 
@@ -356,29 +419,57 @@ async function saveCorporateInvoice(customer) {
       return;
     }
 
-    const invoiceDocRef = await addDoc( collection(db, "corporateInvoices"), {
-      corporateCustomerId: customer.id,
-      companyName: customer.companyName || "",
-      customerEmail: customer.email || "",
-      invoiceNumber: "",
-      invoiceDate: invoiceForm.invoiceDate,
-      dueDate: invoiceForm.dueDate,
-      amount: invoiceTotal.toFixed(2),
-      items: invoiceItems,
-      status: invoiceForm.status,
-      billingPeriod: invoiceForm.billingPeriod.trim(),
-      notes: invoiceForm.notes.trim(),
+    const invoiceData = {
+  corporateCustomerId: customer.id,
+  companyName: customer.companyName || "",
+  customerEmail: customer.email || "",
+  invoiceNumber: invoiceForm.invoiceNumber || "",
+  invoiceDate: invoiceForm.invoiceDate,
+  dueDate: invoiceForm.dueDate,
+  amount: invoiceTotal.toFixed(2),
+  subtotal: invoiceSubtotal.toFixed(2),
+  discountType: invoiceDiscount.type,
+  discountValue: Number(invoiceDiscount.value) || 0,
+  discountAmount: invoiceDiscountAmount.toFixed(2),
+  items: invoiceItems,
+  status: invoiceForm.status,
+  billingPeriod: invoiceForm.billingPeriod.trim(),
+  notes: invoiceForm.notes.trim()
+};
+
+let invoiceDocumentId;
+
+if (editingInvoiceId) {
+  await updateDoc(
+    doc(db, "corporateInvoices", editingInvoiceId),
+    {
+      ...invoiceData,
+      updatedAt: new Date().toISOString()
+    }
+  );
+
+  invoiceDocumentId = editingInvoiceId;
+} else {
+  const invoiceDocRef = await addDoc(
+    collection(db, "corporateInvoices"),
+    {
+      ...invoiceData,
       createdAt: new Date().toISOString()
-    });
+    }
+  );
 
-    setPaypalPaymentUrl("");
-    setSavedInvoiceId(invoiceDocRef.id);
-    console.log("Saved invoice document ID:", invoiceDocRef.id);
+  invoiceDocumentId = invoiceDocRef.id;
+}
 
+setPaypalPaymentUrl("");
+setSavedInvoiceId(invoiceDocumentId);
+
+console.log("Saved invoice document ID:", invoiceDocumentId);
     alert("Invoice saved successfully.");
     await loadCorporateInvoices();
 
     setInvoiceCustomerId(null);
+    setEditingInvoiceId(null);
 
     setInvoiceForm({
       invoiceNumber: "",
@@ -496,6 +587,10 @@ async function sendSavedInvoiceToPayPal(customer, invoice) {
       invoiceDate: invoice.invoiceDate,
       dueDate: invoice.dueDate,
       amount: invoice.amount,
+      subtotal: invoice.subtotal || invoice.amount,
+      discountType: invoice.discountType || "percent",
+      discountValue: Number(invoice.discountValue) || 0,
+      discountAmount: invoice.discountAmount || "0.00",
       items: invoice.items || [],
       billingPeriod: invoice.billingPeriod || "",
       notes: invoice.notes || ""
@@ -544,6 +639,10 @@ async function testPayPalInvoiceConnection(customer) {
   invoiceDate: invoiceForm.invoiceDate,
   dueDate: invoiceForm.dueDate,
   amount: invoiceForm.amount,
+  subtotal: invoice.subtotal || invoice.amount,
+  discountType: invoice.discountType || "percent",
+  discountValue: Number(invoice.discountValue) || 0,
+  discountAmount: invoice.discountAmount || "0.00",
   billingPeriod: invoiceForm.billingPeriod,
   notes: invoiceForm.notes
 });
@@ -2741,7 +2840,105 @@ if (customerLogoFile) {
   + Add Line Item
 </button>
 
+<div
+  style={{
+    marginBottom: "15px"
+  }}
+>
+  <label>Discount Type</label>
+
+  <select
+    value={invoiceDiscount.type}
+    onChange={(e) =>
+      setInvoiceDiscount({
+        ...invoiceDiscount,
+        type: e.target.value
+      })
+    }
+    style={{
+      width: "100%",
+      padding: "10px",
+      marginTop: "5px",
+      marginBottom: "12px",
+      boxSizing: "border-box"
+    }}
+  >
+    <option value="percent">Percentage (%)</option>
+    <option value="amount">Fixed Amount ($)</option>
+  </select>
+
+  <label>
+    Discount
+  </label>
+
+  <input
+    type="number"
+    min="0"
+    step="0.01"
+    placeholder={
+      invoiceDiscount.type === "percent"
+        ? "Example: 10"
+        : "Example: 25.00"
+    }
+    value={invoiceDiscount.value}
+    onChange={(e) =>
+      setInvoiceDiscount({
+        ...invoiceDiscount,
+        value: e.target.value
+      })
+    }
+    style={{
+      width: "100%",
+      padding: "10px",
+      marginTop: "5px",
+      marginBottom: "12px",
+      boxSizing: "border-box"
+    }}
+  />
+
+  {invoiceDiscountAmount > 0 && (
+    <div
+      style={{
+        color: "#166534",
+        fontWeight: "600",
+        marginBottom: "10px"
+      }}
+    >
+      Discount: -${invoiceDiscountAmount.toFixed(2)}
+    </div>
+  )}
 </div>
+
+</div>
+
+<div
+  style={{
+    marginBottom: "8px",
+    padding: "10px 12px",
+    backgroundColor: "#f8fafc",
+    border: "1px solid #e2e8f0",
+    borderRadius: "8px"
+  }}
+>
+  <strong>
+    Subtotal: ${invoiceSubtotal.toFixed(2)}
+  </strong>
+</div>
+
+<div
+  style={{
+    marginBottom: "8px",
+    padding: "10px 12px",
+    backgroundColor: "#fff7ed",
+    border: "1px solid #fed7aa",
+    borderRadius: "8px"
+  }}
+>
+  <strong>
+    Discount: -${invoiceDiscountAmount.toFixed(2)}
+  </strong>
+</div>
+
 <div
   style={{
     marginBottom: "12px",
@@ -2982,6 +3179,24 @@ if (customerLogoFile) {
 </p>
 
 {!invoice.paypalInvoiceId && (
+<>
+<button
+  type="button"
+  onClick={() => startEditingInvoice(customer, invoice)}
+  style={{
+    marginTop: "8px",
+    marginRight: "8px",
+    padding: "8px 14px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#64748b",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600"
+  }}
+>
+  Edit Invoice
+</button>
 
           <button
   type="button"
@@ -2999,7 +3214,7 @@ if (customerLogoFile) {
 >
   Send PayPal Invoice
 </button>
-
+</>
 )}
 
 {invoice.paypalInvoiceId &&

@@ -261,6 +261,17 @@ exports.createPayPalInvoice = onCall(
       );
     }
 
+    const discountValue = Number(invoiceData.discountValue) || 0;
+    const discountType = invoiceData.discountType || "percent";
+
+    console.log("PayPal invoice discount data:", {
+  discountValue,
+  discountType,
+  incomingDiscountValue: invoiceData.discountValue,
+  incomingDiscountType: invoiceData.discountType,
+  incomingDiscountAmount: invoiceData.discountAmount
+});
+
     try {
       const accessToken =
         await getPayPalAccessToken();
@@ -348,6 +359,7 @@ HustleAndFoldLaundry@gmail.com | (951) 291-8621`,
                 }
               }
             ],
+
             items:
   Array.isArray(invoiceData.items) &&
   invoiceData.items.length > 0
@@ -371,7 +383,36 @@ HustleAndFoldLaundry@gmail.com | (951) 291-8621`,
               invoiceAmount.toFixed(2)
           }
         }
-      ]
+            ],
+
+      ...(discountValue > 0
+        ? {
+            amount: {
+              breakdown: {
+                discount: {
+                  invoice_discount:
+                    discountType === "percent"
+                      ? {
+                          percent: discountValue.toFixed(2)
+                        }
+                      : {
+                          amount: {
+                            currency_code: "USD",
+                            value: discountValue.toFixed(2)
+                          }
+                        }
+                }
+              }
+            }
+          }
+        : {}),
+
+        configuration: {
+          partial_payment: {
+            allow_partial_payment: false
+          }
+        }
+
           })
         }
       );
@@ -419,15 +460,21 @@ HustleAndFoldLaundry@gmail.com | (951) 291-8621`,
       }
 
       logger.info(
-        "PayPal invoice created and sent.",
-        {
-          paypalInvoiceId: createdInvoice.id,
-          invoiceNumber:
-            invoiceData.invoiceNumber,
-          customerEmail:
-            invoiceData.customerEmail
-        }
-      );
+  "PayPal invoice created and sent.",
+  {
+    paypalInvoiceId: createdInvoice.id,
+    invoiceNumber:
+      invoiceData.invoiceNumber,
+    customerEmail:
+      invoiceData.customerEmail,
+    discountValue,
+    discountType,
+    incomingDiscountValue:
+      invoiceData.discountValue,
+    incomingDiscountAmount:
+      invoiceData.discountAmount
+  }
+);
 
 const verifyResponse = await fetch(
   `https://api-m.sandbox.paypal.com/v2/invoicing/invoices/${createdInvoice.id}`,
