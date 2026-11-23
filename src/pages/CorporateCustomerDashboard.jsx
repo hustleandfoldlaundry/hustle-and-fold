@@ -1233,8 +1233,6 @@ contracts
           : invoice.status === "SENT" ||
             invoice.status === "UNPAID"
           ? "#dbeafe"
-          : invoice.status === "PARTIALLY_PAID"
-          ? "#fef3c7"
           : invoice.status === "CANCELLED"
           ? "#fee2e2"
           : "#e2e8f0",
@@ -1244,8 +1242,6 @@ contracts
           : invoice.status === "SENT" ||
             invoice.status === "UNPAID"
           ? "#1e40af"
-          : invoice.status === "PARTIALLY_PAID"
-          ? "#92400e"
           : invoice.status === "CANCELLED"
           ? "#991b1b"
           : "#475569"
