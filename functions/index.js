@@ -2,7 +2,7 @@
 
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const {initializeApp} = require("firebase-admin/app");
@@ -20,6 +20,7 @@ const {Resend} = require("resend");
 const resendApiKey = defineSecret("RESEND_API_KEY");
 const paypalClientId = defineSecret("PAYPAL_CLIENT_ID");
 const paypalClientSecret = defineSecret("PAYPAL_CLIENT_SECRET");
+const paypalWebhookId = defineSecret("PAYPAL_WEBHOOK_ID");
 
 async function getPayPalAccessToken() {
   const credentials = Buffer.from(
@@ -263,14 +264,6 @@ exports.createPayPalInvoice = onCall(
 
     const discountValue = Number(invoiceData.discountValue) || 0;
     const discountType = invoiceData.discountType || "percent";
-
-    console.log("PayPal invoice discount data:", {
-  discountValue,
-  discountType,
-  incomingDiscountValue: invoiceData.discountValue,
-  incomingDiscountType: invoiceData.discountType,
-  incomingDiscountAmount: invoiceData.discountAmount
-});
 
     try {
       const accessToken =
@@ -1874,3 +1867,181 @@ exports.syncPayPalInvoiceStatuses = onSchedule(
     }
   }
 );
+
+exports.payPalInvoiceWebhook = onRequest(
+  {
+    region: "us-west2",
+    secrets: [
+      paypalClientId,
+      paypalClientSecret,
+      paypalWebhookId
+    ],
+    maxInstances: 10
+  },
+  async (request, response) => {
+    try {
+      if (request.method !== "POST") {
+        response.status(405).send("Method not allowed.");
+        return;
+      }
+
+      const accessToken =
+        await getPayPalAccessToken();
+
+      const verificationResponse = await fetch(
+        "https://api-m.sandbox.paypal.com/v1/notifications/verify-webhook-signature",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            auth_algo:
+              request.get("paypal-auth-algo"),
+            cert_url:
+              request.get("paypal-cert-url"),
+            transmission_id:
+              request.get("paypal-transmission-id"),
+            transmission_sig:
+              request.get("paypal-transmission-sig"),
+            transmission_time:
+              request.get("paypal-transmission-time"),
+            webhook_id:
+              paypalWebhookId.value(),
+            webhook_event:
+              request.body
+          })
+        }
+      );
+
+      if (!verificationResponse.ok) {
+        const errorText =
+          await verificationResponse.text();
+
+        logger.error(
+          "PayPal webhook verification request failed.",
+          {
+            status: verificationResponse.status,
+            errorText
+          }
+        );
+
+        response.status(400).send(
+          "Webhook verification failed."
+        );
+        return;
+      }
+
+      const verificationResult =
+        await verificationResponse.json();
+
+      if (
+        verificationResult.verification_status !==
+        "SUCCESS"
+      ) {
+        logger.warn(
+          "Invalid PayPal webhook signature.",
+          {
+            eventId: request.body?.id || ""
+          }
+        );
+
+        response.status(400).send(
+          "Invalid webhook signature."
+        );
+        return;
+      }
+
+      const event = request.body;
+
+      if (
+        event?.event_type !==
+        "INVOICING.INVOICE.PAID"
+      ) {
+        response.status(200).send(
+          "Webhook event ignored."
+        );
+        return;
+      }
+
+      const paypalInvoiceId =
+        event?.resource?.id;
+
+      if (!paypalInvoiceId) {
+        logger.error(
+          "Paid webhook did not contain a PayPal invoice ID."
+        );
+
+        response.status(400).send(
+          "Missing PayPal invoice ID."
+        );
+        return;
+      }
+
+      const db = getFirestore();
+
+      const invoiceSnapshot =
+        await db
+          .collection("corporateInvoices")
+          .where(
+            "paypalInvoiceId",
+            "==",
+            paypalInvoiceId
+          )
+          .limit(1)
+          .get();
+
+      if (invoiceSnapshot.empty) {
+        logger.warn(
+          "No corporate invoice matched the PayPal webhook.",
+          {
+            paypalInvoiceId
+          }
+        );
+
+        response.status(200).send(
+          "No matching invoice found."
+        );
+        return;
+      }
+
+      const invoiceDoc =
+        invoiceSnapshot.docs[0];
+
+      await invoiceDoc.ref.update({
+        status: "PAID",
+        paidAt:
+          event.create_time ||
+          new Date().toISOString(),
+        paypalWebhookEventId:
+          event.id || ""
+      });
+
+      logger.info(
+        "Corporate invoice automatically marked PAID.",
+        {
+          invoiceId: invoiceDoc.id,
+          paypalInvoiceId,
+          webhookEventId: event.id || ""
+        }
+      );
+
+      response.status(200).send(
+        "Invoice status updated."
+      );
+    } catch (error) {
+      logger.error(
+        "PayPal invoice webhook failed.",
+        {
+          message: error.message
+        }
+      );
+
+      response.status(500).send(
+        "Webhook processing failed."
+      );
+    }
+  }
+);
+
